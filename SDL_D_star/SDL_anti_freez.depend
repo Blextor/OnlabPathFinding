@@ -1,0 +1,134 @@
+# depslib dependency file v1.0
+1596470324 source:c:\users\boldizsar\desktop\c++\sdl_anti_freez\blocks.cpp
+	"blocks.h"
+	"window.h"
+
+1624563353 c:\users\boldizsar\desktop\c++\sdl_anti_freez\blocks.h
+	"coomon.h"
+
+1624613088 c:\users\boldizsar\desktop\c++\sdl_anti_freez\coomon.h
+	<vector>
+	<string>
+	<iostream>
+	<SDL2/SDL.h>
+	<SDL2/SDL_image.h>
+	<time.h>
+	<math.h>
+	<time.h>
+	<math.h>
+	<thread>
+	<WinSock2.h>
+	<WS2tcpip.h>
+	<system_error>
+	<windows.h>
+	<stdlib.h>
+
+1596292119 c:\users\boldizsar\desktop\c++\sdl_anti_freez\window.h
+	"blocks.h"
+
+1597218149 source:c:\users\boldizsar\desktop\c++\sdl_anti_freez\bolt.cpp
+	"bolt.h"
+
+1596132795 c:\users\boldizsar\desktop\c++\sdl_anti_freez\bolt.h
+	"coomon.h"
+	"blocks.h"
+
+1645032588 source:c:\users\boldizsar\desktop\c++\sdl_anti_freez\jatek.cpp
+	"coomon.h"
+	"blocks.h"
+	"window.h"
+	<list>
+	<mutex>
+
+1643367067 source:c:\users\boldizsar\desktop\c++\sdl_anti_freez\main.cpp
+	"coomon.h"
+
+1597220157 source:c:\users\boldizsar\desktop\c++\sdl_anti_freez\window.cpp
+	"coomon.h"
+	"window.h"
+	"blocks.h"
+	"bolt.h"
+
+1596470324 source:c:\users\boldizsar\desktop\c++\sdl_d_star\blocks.cpp
+	"blocks.h"
+	"window.h"
+
+1624563353 c:\users\boldizsar\desktop\c++\sdl_d_star\blocks.h
+	"coomon.h"
+
+1646034065 c:\users\boldizsar\desktop\c++\sdl_d_star\coomon.h
+	<vector>
+	<string>
+	<iostream>
+	<SDL2/SDL.h>
+	<SDL2/SDL_image.h>
+	<SDL2/SDL2_gfxPrimitives.h>
+	<time.h>
+	<math.h>
+	<time.h>
+	<math.h>
+	<thread>
+	<WinSock2.h>
+	<WS2tcpip.h>
+	<system_error>
+	<windows.h>
+	<stdlib.h>
+
+1596292119 c:\users\boldizsar\desktop\c++\sdl_d_star\window.h
+	"blocks.h"
+
+1597218149 source:c:\users\boldizsar\desktop\c++\sdl_d_star\bolt.cpp
+	"bolt.h"
+
+1596132795 c:\users\boldizsar\desktop\c++\sdl_d_star\bolt.h
+	"coomon.h"
+	"blocks.h"
+
+1646035729 source:c:\users\boldizsar\desktop\c++\sdl_d_star\jatek.cpp
+	"coomon.h"
+	"movement_pattern.h"
+	<list>
+	<mutex>
+	<set>
+
+1645783487 source:c:\users\boldizsar\desktop\c++\sdl_d_star\main.cpp
+	"coomon.h"
+
+1597220157 source:c:\users\boldizsar\desktop\c++\sdl_d_star\window.cpp
+	"coomon.h"
+	"window.h"
+	"blocks.h"
+	"bolt.h"
+
+1646034530 c:\users\boldizsar\desktop\c++\sdl_d_star\movement_pattern.h
+
+1645783487 source:c:\users\boldizsar\documents\github\onlabpathfinding\sdl_d_star\main.cpp
+	"coomon.h"
+
+1646041215 c:\users\boldizsar\documents\github\onlabpathfinding\sdl_d_star\coomon.h
+	<vector>
+	<string>
+	<iostream>
+	<SDL2/SDL.h>
+	<SDL2/SDL_image.h>
+	<SDL2/SDL2_gfxPrimitives.h>
+	<time.h>
+	<math.h>
+	<time.h>
+	<math.h>
+	<thread>
+	<WinSock2.h>
+	<WS2tcpip.h>
+	<system_error>
+	<windows.h>
+	<stdlib.h>
+
+1646041842 source:c:\users\boldizsar\documents\github\onlabpathfinding\sdl_d_star\jatek.cpp
+	"coomon.h"
+	"movement_pattern.h"
+	<list>
+	<mutex>
+	<set>
+
+1646034530 c:\users\boldizsar\documents\github\onlabpathfinding\sdl_d_star\movement_pattern.h
+
