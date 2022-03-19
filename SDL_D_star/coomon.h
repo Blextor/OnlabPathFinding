@@ -25,10 +25,12 @@
 #define MAGAS 480
 
 
-#define STEPS 300   // id�pillanatok sz�ma
-#define PGX 20      // p�lya sz�less�ge
-#define PGY 20      // �s magass�ga
-#define PLY 100       // kezdeti v�letlen gyalogosok sz�ma
+#define STEPS 500           // idõpillanatok száma
+#define FLUID 5.0f          // folyamatos mozgás során milyen bontást alkalmazzon (lehetőleg egészet)
+#define PGX 20              // pálya szélessége
+#define PGY 20              // és magassága7
+#define EXTRA_STEPS 1.0f    // pálya magasságához és szélességéhez képest mennyi extra lépést engedünk meg
+#define PLY 300             // kezdeti véletlen gyalogosok száma
 
 #define DEBUG true
 

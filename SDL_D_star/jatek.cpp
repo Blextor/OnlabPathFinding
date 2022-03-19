@@ -237,7 +237,7 @@ public:
             debug_cnt++;                                                // számolja, hogy hány mezõt fedezett fel
             //if (debug_cnt%1000==0)
               //  cout<<"utKerDebCnt: "<<debug_cnt<<endl;
-            if (debug_cnt>PGX*PGY*10)
+            if (debug_cnt>PGX*PGY*EXTRA_STEPS)
                 break;
             set<UtPos> ujmezok;                                         // az új mezõket ebben összegyûjtöm
             std::set<UtPos>::iterator it = aktualisMezok.begin();       // lekérem a legrövidebb útvonallal kecsegtetõ új felfedezendõ mezõt
@@ -330,7 +330,7 @@ public:
             rot=2;
         else if (pos.irany[2][0])
             rot=3;
-        for (int i=0; i<3; i++){  // TIME COM i<2 ? i<3
+        for (int i=-1; i<3; i++){  // TIME COM i<2 ? i<3
             if (pos.time+i>=0 && pos.time+i<STEPS){
                 bool matrix[15][15];
                 //cout<<"alma"<<endl;
@@ -454,6 +454,7 @@ public:
 
     Palya(){ // konstruktor, jelenleg nem paraméterezhető, csak iskolapédákat tápláltam bele
         clock_t t = clock();
+        //srand(time(NULL));
         pr("Palya konstruktor START");
         for (int i=0; i<STEPS; i++){ // létrehoz STEPS időpillanatnyi pályaképet
             vector<vector<Mezo>> temp; // egy pályakép
@@ -519,6 +520,7 @@ public:
                 }
             }
         }
+        cout<<"Probalkozasok szama: "<<ply_try_cnt<<endl;
 
         // teszt céljából tumultust vizsgáltatok
         /*
@@ -597,7 +599,7 @@ public:
 
 Palya palya;  // Időigényes konstruktor
 
-void megjelenites(SDL_Renderer &renderer, SDL_Window &window/*, Palya palya*/, int step_cnt){
+void megjelenites(SDL_Renderer &renderer, SDL_Window &window/*, Palya palya*/, int step_cnt, float step_cntf = -1.0f){
     SDL_SetRenderDrawColor(&renderer,100,0,0,255);
     SDL_RenderClear(&renderer);
     /*
@@ -609,12 +611,43 @@ void megjelenites(SDL_Renderer &renderer, SDL_Window &window/*, Palya palya*/, i
     */
     //cout<<"pos size: "<<palya.jarokelok[0].pozicio.size()<<endl;
 
-    for (size_t i=0; i<palya.jarokelok.size(); i++){
-        //cout<<palya.jarokelok[i].r<<" "<<palya.jarokelok[i].g<<" "<<palya.jarokelok[i].b<<endl;
-        //cout<<palya.jarokelok[i].pozicio[0][0]<<" "<<palya.jarokelok[i].pozicio[0][1]<<endl;
-        filledCircleRGBA(&renderer,palya.jarokelok[i].pozicio[step_cnt][0]*SZELES/PGX+SZELES/PGX/2,palya.jarokelok[i].pozicio[step_cnt][1]*MAGAS/PGY+MAGAS/PGY/2,
-                         SZELES/PGX/3,palya.jarokelok[i].r,palya.jarokelok[i].g,palya.jarokelok[i].b,255);
+    if (step_cntf<0){
+        for (size_t i=0; i<palya.jarokelok.size(); i++){
+            //cout<<palya.jarokelok[i].r<<" "<<palya.jarokelok[i].g<<" "<<palya.jarokelok[i].b<<endl;
+            //cout<<palya.jarokelok[i].pozicio[0][0]<<" "<<palya.jarokelok[i].pozicio[0][1]<<endl;
 
+            filledCircleRGBA(&renderer,palya.jarokelok[i].pozicio[step_cnt][0]*SZELES/PGX+SZELES/PGX/2,palya.jarokelok[i].pozicio[step_cnt][1]*MAGAS/PGY+MAGAS/PGY/2,
+                             SZELES/PGX/3,palya.jarokelok[i].r,palya.jarokelok[i].g,palya.jarokelok[i].b,255);
+
+        }
+    } else {
+        float c,f;
+        //cout<<"valami okosat pls: "<<ceil(step_cntf)<<" "<<floor(step_cntf)<<" "<<step_cntf<<endl;
+        if (step_cntf!=floor(step_cntf)){
+            c = (ceil(step_cntf)-step_cntf);
+            f = (step_cntf-floor(step_cntf));
+            //cout<<c<<" "<<f<<endl;
+            //cout<<"valami okosat pls: "<<ceil(step_cntf)<<" "<<floor(step_cntf)<<" "<<step_cntf<<endl;
+        }
+
+        for (size_t i=0; i<palya.jarokelok.size(); i++){
+            float x, y;
+            if (step_cntf==floor(step_cntf) || palya.jarokelok[i].pozicio[ceil(step_cntf)][0]==-1){
+                x = palya.jarokelok[i].pozicio[(int)step_cntf][0]*SZELES/PGX+SZELES/PGX/2;
+                y = palya.jarokelok[i].pozicio[(int)step_cntf][1]*MAGAS/PGY+MAGAS/PGY/2;
+            } else {
+                x = f * (palya.jarokelok[i].pozicio[ceil(step_cntf)][0]-0.5f)*SZELES/PGX+SZELES/PGX/2 + c * (palya.jarokelok[i].pozicio[floor(step_cntf)][0]-0.5f)*SZELES/PGX+SZELES/PGX/2;
+                y = f * (palya.jarokelok[i].pozicio[ceil(step_cntf)][1]-0.5f)*MAGAS/PGY+MAGAS/PGY/2 + c * (palya.jarokelok[i].pozicio[floor(step_cntf)][1]-0.5f)*MAGAS/PGY+MAGAS/PGY/2;
+            }
+            filledCircleRGBA(&renderer,
+                             x,//palya.jarokelok[i].pozicio[step_cnt][0]*SZELES/PGX+SZELES/PGX/2,
+                             y,//palya.jarokelok[i].pozicio[step_cnt][1]*MAGAS/PGY+MAGAS/PGY/2,
+                             SZELES/PGX/3,
+                             palya.jarokelok[i].r,
+                             palya.jarokelok[i].g,
+                             palya.jarokelok[i].b,
+                             255);
+        }
     }
 
     /*
@@ -641,14 +674,16 @@ void jatek( SDL_Window &window, SDL_Renderer &renderer){
     //thread frame(megjelenites,ref(renderer),ref(mezok),ref(window));
 
     clock_t t1 = clock();
-    int delay = 60;
+    float delay = 65.f;
     bool stop = false;
     srand(100);
-
+    bool a = false;
 
     SDL_Event ev;
     cout<<"tick "<<clock()-t1<<endl;
-    int step_cnt=0;
+    float step_cnt=0;
+    int frames = 0;
+    clock_t fps_t = clock();
     while(!stop){
         bool frame=false;
         if (clock()>t1+CLOCKS_PER_SEC/delay){
@@ -659,6 +694,11 @@ void jatek( SDL_Window &window, SDL_Renderer &renderer){
         }
 
         if (SDL_PollEvent(&ev)){
+            if (ev.type==SDL_KEYUP){
+                if (ev.key.keysym.sym==SDLK_a){
+                    a=false;
+                }
+            }
             if (ev.type==SDL_KEYDOWN){
                 if (ev.key.keysym.sym==SDLK_r){
                     step_cnt=0;
@@ -671,6 +711,17 @@ void jatek( SDL_Window &window, SDL_Renderer &renderer){
                         cout<<"step_cnt: "<<step_cnt<<endl;
                     }
                 }
+
+                if (ev.key.keysym.sym==SDLK_a){
+                    a = true;
+                    /*
+                    if(step_cnt+1<STEPS){
+                        step_cnt+=1.f/5.f;
+                        cout<<"step_cnt: "<<step_cnt<<endl;
+                    }
+                    */
+                }
+
                 if (ev.key.keysym.sym==SDLK_d){
                     if(step_cnt>0){
                         step_cnt--;
@@ -683,9 +734,17 @@ void jatek( SDL_Window &window, SDL_Renderer &renderer){
         }
 
         if (frame){
+            if (a)
+                step_cnt+=1.f/FLUID;
             //clock_t t = clock();
-            megjelenites(renderer,window/*,palya*/,step_cnt);
+            megjelenites(renderer,window/*,palya*/,step_cnt, step_cnt);
+            frames++;
             //cout<<clock()-t<<endl;
+        }
+        if (fps_t+1000<=clock()){
+            fps_t=clock();
+            cout<<"fps: "<<frames<<endl;
+            frames=0;
         }
     }
 }
