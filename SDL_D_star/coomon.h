@@ -27,10 +27,10 @@
 
 #define STEPS 1000           // idõpillanatok száma
 #define FLUID 5.0f          // folyamatos mozgás során milyen bontást alkalmazzon (lehetőleg egészet)
-#define PGX 50              // pálya szélessége
-#define PGY 50              // és magassága
+#define PGX 39              // pálya szélessége
+#define PGY 39              // és magassága
 #define EXTRA_STEPS 1.0f    // pálya magasságához és szélességéhez képest mennyi extra lépést engedünk meg
-#define PLY 1000             // kezdeti véletlen gyalogosok száma
+#define PLY 300             // kezdeti véletlen gyalogosok száma
 
 #define DEBUG true
 

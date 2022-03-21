@@ -46,7 +46,12 @@
 		<Unit filename="coomon.h" />
 		<Unit filename="jatek.cpp" />
 		<Unit filename="main.cpp" />
+		<Unit filename="matrix_handle.cpp" />
+		<Unit filename="menu.cpp" />
+		<Unit filename="menu.h" />
 		<Unit filename="movement_pattern.h" />
+		<Unit filename="palya.cpp" />
+		<Unit filename="palya.h" />
 		<Extensions>
 			<lib_finder disable_auto="1" />
 		</Extensions>

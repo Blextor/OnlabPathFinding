@@ -102,7 +102,7 @@ class Palya{
 
     Palya();
 
-
+    Palya(bool ures);
 };
 
 

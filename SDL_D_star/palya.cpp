@@ -157,14 +157,17 @@ int dis(int x, int xv, int y, int yv){  // távolság számítás
 
 
     void Palya::scanMezokInWay(int x, int y, int time, bool hova[3][3]){ // lekérdezni, hogy melyik irányba lehet menni, adott időpillanatban, adott helyen
+        ///cout<<"scan"<<endl;
         for (int i=0; i<3; i++){ // x szerint -1,0,1
             for (int j=0;j<3;j++) { // y szerint -1,0,1
                 hova[i][j] = mezok[time][x][y].iranyok[i][j]; // majd az értékadás
             }
         }
+        ///cout<<"scan end"<<endl;
     }
 
     bool Palya::utvonalKereses(vector<UtPos> &utvonal, int x, int y, int celx, int cely, int time){ // megkeresi az útvonalat
+        ///cout<<"utvonalKereses"<<endl;
         int maxDis = dis(x,celx,y,cely);        // kiszámolja az elméleti minimum távolságot
 
         set<UtPos> aktualisMezok;       // létrehoz egy konténert, hogy mit kéne esetleg még felfedezni, set->folyton rendezett valami szerint
@@ -208,7 +211,6 @@ int dis(int x, int xv, int y, int yv){  // távolság számítás
                 //cout<<"falma "<<akt.x<<" "<<akt.y<<" "<<akt.time<<" "<<akt.becsles<<" "<<akt.elozoindex<<endl; // kiiratom a mező adatait
                 scanMezokInWay(akt.x,akt.y,akt.time,ref(hova));     // a legkedvezõbb mezõbõl kell a helye és az ideje, hogy tudjam milyen irányban haladhatok onnan tovább
                 bool haveFind;                                      // flag, hogy ha találok egyetlen új mezõt is
-
                 for (int i=0; i<9; i++){            // végigmegyek a hova 3*3-as tömbjén
                     if (!hova[i/3][i%3]){           // ha valid egy bizonyos irányba történõ mozgás
                         int timeP = 1;              // akkor ha ez helyben állás, akkor 1 egység idõbe kerül
@@ -216,7 +218,6 @@ int dis(int x, int xv, int y, int yv){  // távolság számítás
                             timeP=3;                // akkor 3 egység idõbe kerül
                         else if (i/3 != i%3)
                             timeP=2;                // és már csak a 2 egység idõbe kerülõk maradnak
-
                         int uthossz = 0; if (timeP>1) uthossz=timeP*5;
                         int X = akt.x+i/3-1, Y = akt.y+i%3-1;                                   // elmentem, hogy hova történne a lépés
                         int becsles=akt.megtettUt+uthossz+dis(X,celx,Y,cely);                   // az onnan való továbblépésrõl számolok egy becslést az út hosszáról
@@ -226,7 +227,6 @@ int dis(int x, int xv, int y, int yv){  // távolság számítás
                         if (becsles<legkisebbBecsles)       // ha kell
                             legkisebbBecsles=becsles;       // frissítem a legkisebb becslést
                         haveFind=true;                      // továbbá elmentem, hogy találtam egy járható utat
-
                         if (X==celx && Y==cely){            // ha ez a járható út a célmezõ
 
                             //cout<<"hm "<<debug_cnt<<" "<<clock()-t2<<endl;           // TODO
@@ -265,7 +265,7 @@ int dis(int x, int xv, int y, int yv){  // távolság számítás
                 }
             }
         }
-
+        ///cout<<"utvonalKereses end"<<endl;
         return false;      // ide csak útvonal nélkül juthat el
     }
 
@@ -288,8 +288,10 @@ int dis(int x, int xv, int y, int yv){  // távolság számítás
                     matrix_cpy(slash_matrix_M10,matrix);
                 else if (i==-1)
                     matrix_cpy(slash_matrix_M5,matrix);
-                else if (i==0)
+                else if (i==0){
                     matrix_cpy(slash_matrix_0,matrix);
+
+                }
                 else if (i==1)
                     matrix_cpy(slash_matrix_P5,matrix);
                 else if (i==2)
@@ -298,7 +300,6 @@ int dis(int x, int xv, int y, int yv){  // távolság számítás
                     matrix_cpy(slash_matrix_P15,matrix);
                 for (int r=0; r<rot; r++)
                     matrix_rotate(matrix);
-
                 for (int x=-2; x<3; x++){
                     for (int y=-2; y<3; y++){
                         if (pos.x+x>=0 && pos.x+x<PGX && pos.y+y>=0 && pos.y+y<PGY){
@@ -377,15 +378,17 @@ int dis(int x, int xv, int y, int yv){  // távolság számítás
 
     void Palya::palyakepModosit(UtPos pos){
 
-        //cout<<"udv"<<endl;
+        ///cout<<"udv"<<endl;
+        ///cout<<"pos: "<<pos.x<<" "<<pos.y<<" "<<pos.time<<" "<<pos.elozoindex<<endl;
         if (pos.irany[0][0] || pos.irany[0][2] || pos.irany[2][0] || pos.irany[2][2]){
-            //cout<<"1"<<endl;
+            ///cout<<"1"<<endl;
+
             palyakepModositAtlosan(pos);
         } else if (pos.irany[1][1]){
-            //cout<<"2"<<endl;
+            ///cout<<"2"<<endl;
             palyakepModositHelyben(pos);
         } else {
-            //cout<<"3"<<endl;
+            ///cout<<"3"<<endl;
 
             palyakepModositKeresztben(pos);
 
@@ -394,15 +397,19 @@ int dis(int x, int xv, int y, int yv){  // távolság számítás
     }
 
     void Palya::palyakepFrissites(vector<UtPos> utvonal, Jarokelo jarokelo){
+        ///cout<<"HM"<<endl;
         for (size_t i=0; i<utvonal.size(); i++){
+            ///cout<<"HM1.1"<<endl;
             palyakepModosit(utvonal[i]);
         }
+        ///cout<<"HM2"<<endl;
         palyakepModositHelyben(UtPos(jarokelo.cel[0],jarokelo.cel[1],utvonal.back().time+utvonal.back().utazasi_ido,true),true);
+        ///cout<<"HM3"<<endl;
     }
 
     Palya::Palya(){ // konstruktor, jelenleg nem paraméterezhető, csak iskolapédákat tápláltam bele
         clock_t t = clock();
-        srand(time(NULL));
+        //srand(time(NULL));
         pr("Palya konstruktor START");
         for (int i=0; i<STEPS; i++){ // létrehoz STEPS időpillanatnyi pályaképet
             vector<vector<Mezo>> temp; // egy pályakép
@@ -443,15 +450,18 @@ int dis(int x, int xv, int y, int yv){  // távolság számítás
                 //cout<<"B"<<endl;
                 vector<UtPos> utvonal;  // a lehendő útvonal
                 ///cout<<"A "<<ply_cnt<<endl; // a játékos sorszáma, aki potenciálisan tényleg a következő lesz
+                ///cout<<"alma"<<endl;
                 bool siker = utvonalKereses(ref(utvonal), x, y, celx, cely); // az utvonal-ba összeállítja az útvonalat (kéne hibát majd dobnia, ha nincs lehetséges útvonal)
+                ///cout<<"balma"<<endl;
                 //cout<<"B"<<endl;
                 //for (size_t i=0; i<utvonal.size(); i++){   // ki is iratom a kreált utat
                     ///cout<<"tata "<<utvonal[i].x<<" "<<utvonal[i].y<<" "<<utvonal[i].time<<" "<<utvonal[i].becsles<<" "<<utvonal[i].elozoindex<<endl;
                 ///}
                 ///cout<<"B"<<endl;
                 if (siker){
+                    ///cout<<"calma"<<endl;
                     Jarokelo jarokelo(x,y,celx,cely,utvonal); // majd betáplálom az újdonsült járókelőbe
-
+                    ///cout<<"salma"<<endl;
                     /*
                     for (size_t i=0; i<utvonal.size(); i++){   // ki is iratom a kreált utat
                         //cout<<"tata "<<utvonal[i].x<<" "<<utvonal[i].y<<" "<<utvonal[i].time<<" "<<utvonal[i].becsles<<" "<<utvonal[i].elozoindex<<endl;
@@ -462,7 +472,12 @@ int dis(int x, int xv, int y, int yv){  // távolság számítás
                         //}
                     }
                     */
+                    ///cout<<utvonal.size()<<endl;
+                    ///for (int i=0; i<utvonal.size(); i++){
+                        ///cout<<utvonal[i].x<<" "<<utvonal[i].y<<endl;
+                    ///}
                     palyakepFrissites(utvonal,jarokelo);
+                    ///cout<<"ealma"<<endl;
                     jarokelok.push_back(jarokelo);  // és végül a járókelőkben eltárolom az újoncot
                     ply_cnt++;                      // majd jöhet a következő játékos index
                 }
@@ -542,4 +557,4 @@ int dis(int x, int xv, int y, int yv){  // távolság számítás
         */
     }
 
-
+    Palya::Palya(bool ures){}

@@ -301,6 +301,7 @@ bool slash_matrix_P15[15][15] =
 {0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0}
 };
 
+#pragma GCC optimize ("O0")
 bool matrix_rotate(bool matrix[15][15]){ // balra
     bool ret[15][15];
     for (int i=0; i<15; i++){
@@ -316,7 +317,9 @@ bool matrix_rotate(bool matrix[15][15]){ // balra
 }
 
 bool matrix_cpy(bool from[15][15], bool to[15][15]){
+
     for (int i=0; i<15*15; i++){
+        //cout<<i<<" "<<to[i/15][i%15]<<" "<<from[i/15][i%15]<<endl;;
         to[i/15][i%15]=from[i/15][i%15];
     }
 }

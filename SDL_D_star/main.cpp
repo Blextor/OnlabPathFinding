@@ -5,7 +5,7 @@ using namespace std;
 int main( int argc, char * argv[] )
 {
 
-    srand(time(NULL));
+    //srand(time(NULL));
     cout<<time(NULL)<<endl;
     SDL_Window *window;
     SDL_Renderer *renderer;
