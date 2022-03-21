@@ -105,7 +105,7 @@
 1647727989 source:c:\users\boldizsar\documents\github\onlabpathfinding\sdl_d_star\main.cpp
 	"coomon.h"
 
-1647732682 c:\users\boldizsar\documents\github\onlabpathfinding\sdl_d_star\coomon.h
+1647784496 c:\users\boldizsar\documents\github\onlabpathfinding\sdl_d_star\coomon.h
 	<vector>
 	<string>
 	<iostream>
@@ -123,12 +123,32 @@
 	<windows.h>
 	<stdlib.h>
 
-1647732607 source:c:\users\boldizsar\documents\github\onlabpathfinding\sdl_d_star\jatek.cpp
+1647850836 source:c:\users\boldizsar\documents\github\onlabpathfinding\sdl_d_star\jatek.cpp
 	"coomon.h"
+	"palya.h"
+	<list>
+	<mutex>
+	<set>
+
+1647850778 c:\users\boldizsar\documents\github\onlabpathfinding\sdl_d_star\movement_pattern.h
+
+1647849303 source:c:\users\boldizsar\documents\github\onlabpathfinding\sdl_d_star\menu.cpp
+	"menu.h"
+
+1647849208 c:\users\boldizsar\documents\github\onlabpathfinding\sdl_d_star\menu.h
+
+1647850595 source:c:\users\boldizsar\documents\github\onlabpathfinding\sdl_d_star\palya.cpp
+	"palya.h"
 	"movement_pattern.h"
 	<list>
 	<mutex>
 	<set>
 
-1646034530 c:\users\boldizsar\documents\github\onlabpathfinding\sdl_d_star\movement_pattern.h
+1647850565 c:\users\boldizsar\documents\github\onlabpathfinding\sdl_d_star\palya.h
+	"coomon.h"
+	<list>
+	<mutex>
+	<set>
+
+1647850794 source:c:\users\boldizsar\documents\github\onlabpathfinding\sdl_d_star\matrix_handle.cpp
 
