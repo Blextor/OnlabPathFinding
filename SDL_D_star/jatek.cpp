@@ -40,14 +40,15 @@ void jatek( SDL_Window &window, SDL_Renderer &renderer){
                 // kellene bele különböző falak
                 // ajtók, amik csukódnak
                 // és ezt mind egy editorban kéne össze gyűjteni
-
+    cout<<"alma"<<endl;
     Menu menu;
-
+    cout<<"balma"<<endl;
     SDL_Event ev;
     cout<<"tick "<<clock()-t1<<endl;
     float step_cnt=0;
     int frames = 0;
     clock_t fps_t = clock();
+    cout<<"calma"<<endl;
     while(!stop){
         bool frame=false;
         if (clock()>t1+CLOCKS_PER_SEC/delay){
@@ -57,13 +58,13 @@ void jatek( SDL_Window &window, SDL_Renderer &renderer){
             Sleep(1);
         }
 
+
         if (SDL_PollEvent(&ev)){
-            menu.event(ref(ev));
+            menu.event(ev);
         }
 
         if (frame){
-            if (a)
-                step_cnt+=1.f/FLUID;
+            menu.frame();
             clock_t t = clock();
             //megjelenites(renderer,window,ref(palya),step_cnt, step_cnt);
             menu.draw(renderer,window);

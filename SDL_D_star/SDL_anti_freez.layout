@@ -2,25 +2,9 @@
 <CodeBlocks_layout_file>
 	<FileVersion major="1" minor="0" />
 	<ActiveTarget name="Release" />
-	<File name="palya.cpp" open="1" top="1" tabpos="7" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="16578" topLine="150" />
-		</Cursor>
-		<Folding>
-			<Collapse line="14" />
-			<Collapse line="23" />
-			<Collapse line="29" />
-			<Collapse line="61" />
-			<Collapse line="74" />
-			<Collapse line="82" />
-			<Collapse line="131" />
-			<Collapse line="316" />
-			<Collapse line="337" />
-		</Folding>
-	</File>
 	<File name="movement_pattern.h" open="1" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="8631" topLine="35" />
+			<Cursor1 position="9187" topLine="101" />
 		</Cursor>
 		<Folding>
 			<Collapse line="5" />
@@ -35,32 +19,66 @@
 			<Collapse line="212" />
 			<Collapse line="235" />
 			<Collapse line="258" />
-			<Collapse line="281" />
 		</Folding>
 	</File>
-	<File name="main.cpp" open="1" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="palya.cpp" open="1" top="1" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="95" topLine="0" />
+			<Cursor1 position="18116" topLine="245" />
+		</Cursor>
+		<Folding>
+			<Collapse line="14" />
+			<Collapse line="23" />
+			<Collapse line="29" />
+			<Collapse line="156" />
+			<Collapse line="166" />
+			<Collapse line="174" />
+			<Collapse line="392" />
+			<Collapse line="413" />
+			<Collapse line="454" />
+			<Collapse line="474" />
+			<Collapse line="486" />
+			<Collapse line="505" />
+			<Collapse line="810" />
+			<Collapse line="817" />
+			<Collapse line="835" />
+		</Folding>
+	</File>
+	<File name="palya.h" open="1" top="0" tabpos="6" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="2520" topLine="83" />
 		</Cursor>
 	</File>
-	<File name="palya.h" open="1" top="0" tabpos="8" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="menu.h" open="1" top="0" tabpos="8" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="128" topLine="16" />
+			<Cursor1 position="199" topLine="24" />
 		</Cursor>
 	</File>
 	<File name="jatek.cpp" open="1" top="0" tabpos="1" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="3883" topLine="78" />
+			<Cursor1 position="1204" topLine="16" />
 		</Cursor>
 	</File>
 	<File name="coomon.h" open="1" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="642" topLine="23" />
+			<Cursor1 position="531" topLine="12" />
 		</Cursor>
 	</File>
-	<File name="menu.cpp" open="1" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="menu.cpp" open="1" top="0" tabpos="7" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="10" topLine="0" />
+			<Cursor1 position="12270" topLine="144" />
+		</Cursor>
+		<Folding>
+			<Collapse line="14" />
+			<Collapse line="96" />
+			<Collapse line="103" />
+			<Collapse line="141" />
+			<Collapse line="425" />
+			<Collapse line="436" />
+		</Folding>
+	</File>
+	<File name="main.cpp" open="1" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="466" topLine="0" />
 		</Cursor>
 	</File>
 </CodeBlocks_layout_file>

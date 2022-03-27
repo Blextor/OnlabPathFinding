@@ -24,13 +24,18 @@
 #define SZELES 480
 #define MAGAS 480
 
+#define PALYASZELES 480
+#define PALYAMAGAS 480
 
-#define STEPS 1000           // idõpillanatok száma
-#define FLUID 5.0f          // folyamatos mozgás során milyen bontást alkalmazzon (lehetőleg egészet)
-#define PGX 39              // pálya szélessége
-#define PGY 39              // és magassága
-#define EXTRA_STEPS 1.0f    // pálya magasságához és szélességéhez képest mennyi extra lépést engedünk meg
-#define PLY 300             // kezdeti véletlen gyalogosok száma
+
+#define STEPS 3000           // idõpillanatok száma
+#define FLUID 4.0f          // folyamatos mozgás során milyen bontást alkalmazzon (lehetőleg egészet)
+#define PGX 15              // pálya szélessége
+#define PGY 15              // és magassága
+#define EXTRA_STEPS 0.3f    // pálya magasságához és szélességéhez képest mennyi extra lépést engedünk meg
+#define PLY 300            // kezdeti véletlen gyalogosok száma
+#define FORGALOM 5
+#define FALCNT 30
 
 #define DEBUG true
 

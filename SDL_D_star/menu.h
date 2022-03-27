@@ -6,20 +6,41 @@
 
 class Menu{
     enum Mstate{
-        changeSize, editor, simulate
+        choose, changeSize, editor, simulate
     };
 
-    Palya palya;// = Palya(false);
+    Palya palya = Palya(false);
 
     Mstate state;
 
     float step_cntf = 0;
     int step_cnt = 0;
 
+    vector<string> modok;
+
+    bool a = false;
 
     void drawChangeSize(SDL_Renderer &renderer, SDL_Window &window);
     void drawEditor(SDL_Renderer &renderer, SDL_Window &window);
     void drawSimulate(SDL_Renderer &renderer, SDL_Window &window);
+
+
+    // kód duplikáció, refact
+    void eventchoose(SDL_Event &ev);
+    void eventchangeSize(SDL_Event &ev);
+    void eventeditor(SDL_Event &ev);
+    void eventsimulate(SDL_Event &ev);
+
+    void drawchoose(SDL_Renderer &renderer, SDL_Window &window);
+    void drawchangeSize(SDL_Renderer &renderer, SDL_Window &window);
+    void draweditor(SDL_Renderer &renderer, SDL_Window &window);
+    void drawsimulate(SDL_Renderer &renderer, SDL_Window &window);
+
+    void framechoose();
+    void framechangeSize();
+    void frameeditor();
+    void framesimulate();
+
 
 public:
 
@@ -27,7 +48,8 @@ public:
 
     void draw(SDL_Renderer &renderer, SDL_Window &window);
 
-    event(SDL_Event &ev);
+    void event(SDL_Event &ev);
+    void frame();
 };
 
 
