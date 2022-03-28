@@ -94,11 +94,9 @@ public:
 struct Pos{
     int x=0, y=0;
 
-    int time = 0;
-
     Pos(int a, int b){x=a, y=b;}
 
-    void Set(int a, int b, int t=0){x=a, y=b, time=t;}
+    void Set(int a, int b){x=a, y=b;}
 };
 
 inline bool operator<(const Pos& a, const Pos& b);

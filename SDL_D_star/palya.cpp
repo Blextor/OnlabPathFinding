@@ -78,14 +78,10 @@ inline bool operator<(const UtPos& lhs, const UtPos& rhs)
 
 inline bool operator<(const Pos& a, const Pos& b)
 {
-    /// Aranyat érő két sor
-    if (a.time==b.time){
-        if (a.x==b.x){
-            return a.y > b.y;
-        }
-        return a.x < b.x;
+    if (a.x==b.x){
+        return a.y > b.y;
     }
-    return a.time < b.time;
+    return a.x < b.x;
 }
 
 
@@ -988,89 +984,75 @@ int Palya::dis(int x, int xv, int y, int yv){  // távolság számítás
         int cnt2 = 0, cnt3 = 0;
         for (int zzz=0; zzz<celok; zzz++){
             cout<<"celok: "<<zzz<<" ";
-            int time=0;
-            set<Pos> aktualismezok; aktualismezok.insert(Pos(cel_pos[zzz].x,cel_pos[zzz].y)); // 256 lehet max a pálya mérete
-            set<Pos>::iterator it;
+            int time=0, maxTime = Sx*Sy*3;
+            //set<Pos> aktualismezok; aktualismezok.insert(Pos(cel_pos[zzz].x,cel_pos[zzz].y)); // 256 lehet max a pálya mérete
+            //set<Pos>::iterator it;
+            vector<vector<Pos>> aktualismezok; aktualismezok.resize(Sx*Sy*3+5); aktualismezok[0].push_back(Pos(cel_pos[zzz].x,cel_pos[zzz].y));
             int cnt=1;
             opt_becsult[cel_pos[zzz].x][cel_pos[zzz].y][zzz]=0;
-            while (aktualismezok.size()!=0){
+            while (time<maxTime){
 
                 vector<Pos> ujmezok;
 
                 //cout<<"ahapci"<<endl;
                 //cout<<aktualismezok.size()<<endl;
-                for (it=aktualismezok.begin(); it!=aktualismezok.end(); /*it++*/){
+                for (int i=0; i<aktualismezok[time].size(); i++){
 
                     cnt2++;
-                    Pos pos = *it;//aktualismezok[i];
+                    Pos pos = aktualismezok[time][i]; //*it;//aktualismezok[i];
                     Pos ujpos=Pos(0,0);
-                    if (time==opt_becsult[pos.x][pos.y][zzz]){ // fordítva kellene az indexelésnek történnie
-                        int aktdis = opt_becsult[pos.x][pos.y][zzz];
-                        if (pos.x>0){
-                            if (opt_becsult[pos.x-1][pos.y][zzz]==-1 && !mezok[0][pos.x-1][pos.y].fal){
-                                ujpos.Set(pos.x-1,pos.y,aktdis+2);
-                                ujmezok.push_back(ujpos);
-                                opt_becsult[pos.x-1][pos.y][zzz]=aktdis+2;
-                            }
-                            if (pos.y>0 && !mezok[0][pos.x-1][pos.y-1].fal && opt_becsult[pos.x-1][pos.y-1][zzz]==-1){
-                                ujpos.Set(pos.x-1,pos.y-1,aktdis+3);
-                                ujmezok.push_back(ujpos);
-                                opt_becsult[pos.x-1][pos.y-1][zzz]=aktdis+3;
-                            }
-                            if (pos.y<Sy-1 && !mezok[0][pos.x-1][pos.y+1].fal && opt_becsult[pos.x-1][pos.y+1][zzz]==-1){
-                                ujpos.Set(pos.x-1,pos.y+1,aktdis+3);
-                                ujmezok.push_back(ujpos);
-                                opt_becsult[pos.x-1][pos.y+1][zzz]=aktdis+3;
-                            }
+                    int aktdis = opt_becsult[pos.x][pos.y][zzz];
+                    if (pos.x>0){
+                        if (opt_becsult[pos.x-1][pos.y][zzz]==-1 && !mezok[0][pos.x-1][pos.y].fal){
+                            ujpos.Set(pos.x-1,pos.y);
+                            aktualismezok[aktdis+2].push_back(ujpos);
+                            opt_becsult[pos.x-1][pos.y][zzz]=aktdis+2;
                         }
-                        if (pos.x<Sx-1){
-                            if (opt_becsult[pos.x+1][pos.y][zzz]==-1 && !mezok[0][pos.x+1][pos.y].fal){
-                                ujpos.Set(pos.x+1,pos.y,aktdis+2);
-                                ujmezok.push_back(ujpos);
-                                opt_becsult[pos.x+1][pos.y][zzz]=aktdis+2;
-                            }
-                            if (pos.y>0 && !mezok[0][pos.x+1][pos.y-1].fal && opt_becsult[pos.x+1][pos.y-1][zzz]==-1){
-                                ujpos.Set(pos.x+1,pos.y-1,aktdis+3);
-                                ujmezok.push_back(ujpos);
-                                opt_becsult[pos.x+1][pos.y-1][zzz]=aktdis+3;
-                            }
-                            if (pos.y<Sy-1 && !mezok[0][pos.x+1][pos.y+1].fal && opt_becsult[pos.x+1][pos.y+1][zzz]==-1){
-                                ujpos.Set(pos.x+1,pos.y+1,aktdis+3);
-                                ujmezok.push_back(ujpos);
-                                opt_becsult[pos.x+1][pos.y+1][zzz]=aktdis+3;
-                            }
+                        if (pos.y>0 && !mezok[0][pos.x-1][pos.y-1].fal && opt_becsult[pos.x-1][pos.y-1][zzz]==-1){
+                            ujpos.Set(pos.x-1,pos.y-1);
+                            aktualismezok[aktdis+3].push_back(ujpos);
+                            opt_becsult[pos.x-1][pos.y-1][zzz]=aktdis+3;
                         }
-                        if (pos.y>0 && !mezok[0][pos.x][pos.y-1].fal && opt_becsult[pos.x][pos.y-1][zzz]==-1){
-                            ujpos.Set(pos.x,pos.y-1,aktdis+2);
-                            ujmezok.push_back(ujpos);
-                            opt_becsult[pos.x][pos.y-1][zzz]=aktdis+2;
+                        if (pos.y<Sy-1 && !mezok[0][pos.x-1][pos.y+1].fal && opt_becsult[pos.x-1][pos.y+1][zzz]==-1){
+                            ujpos.Set(pos.x-1,pos.y+1);
+                            aktualismezok[aktdis+3].push_back(ujpos);
+                            opt_becsult[pos.x-1][pos.y+1][zzz]=aktdis+3;
                         }
-                        if (pos.y<Sy-1 && !mezok[0][pos.x][pos.y+1].fal && opt_becsult[pos.x][pos.y+1][zzz]==-1){
-                            ujpos.Set(pos.x,pos.y+1,aktdis+2);
-                            ujmezok.push_back(ujpos);
-                            opt_becsult[pos.x][pos.y+1][zzz]=aktdis+2;
-                        }
-                        it = aktualismezok.erase(it);
-
-                        //break;
-
-                    } //else if (time+1<=opt_becsult[pos.x][pos.y][zzz]){
-                        //break; // SZóval nem itt van a kutya elásva. Pedig az iterálást 2/3-oltam.
-                        //it++;
-                    //}
-                    else {
-                        //if (it!=aktualismezok.end())
-                        break;
-                        //it++;
                     }
-
+                    if (pos.x<Sx-1){
+                        if (opt_becsult[pos.x+1][pos.y][zzz]==-1 && !mezok[0][pos.x+1][pos.y].fal){
+                            ujpos.Set(pos.x+1,pos.y);
+                            aktualismezok[aktdis+2].push_back(ujpos);
+                            opt_becsult[pos.x+1][pos.y][zzz]=aktdis+2;
+                        }
+                        if (pos.y>0 && !mezok[0][pos.x+1][pos.y-1].fal && opt_becsult[pos.x+1][pos.y-1][zzz]==-1){
+                            ujpos.Set(pos.x+1,pos.y-1);
+                            aktualismezok[aktdis+3].push_back(ujpos);
+                            opt_becsult[pos.x+1][pos.y-1][zzz]=aktdis+3;
+                        }
+                        if (pos.y<Sy-1 && !mezok[0][pos.x+1][pos.y+1].fal && opt_becsult[pos.x+1][pos.y+1][zzz]==-1){
+                            ujpos.Set(pos.x+1,pos.y+1);
+                            aktualismezok[aktdis+3].push_back(ujpos);
+                            opt_becsult[pos.x+1][pos.y+1][zzz]=aktdis+3;
+                        }
+                    }
+                    if (pos.y>0 && !mezok[0][pos.x][pos.y-1].fal && opt_becsult[pos.x][pos.y-1][zzz]==-1){
+                        ujpos.Set(pos.x,pos.y-1);
+                        aktualismezok[aktdis+2].push_back(ujpos);
+                        opt_becsult[pos.x][pos.y-1][zzz]=aktdis+2;
+                    }
+                    if (pos.y<Sy-1 && !mezok[0][pos.x][pos.y+1].fal && opt_becsult[pos.x][pos.y+1][zzz]==-1){
+                        ujpos.Set(pos.x,pos.y+1);
+                        aktualismezok[aktdis+2].push_back(ujpos);
+                        opt_becsult[pos.x][pos.y+1][zzz]=aktdis+2;
+                    }
                 }
                 time++;
                 //cout<<"bhapci"<<endl;
-                aktualismezok.insert(ujmezok.begin(), ujmezok.end());
+                //aktualismezok.insert(ujmezok.begin(), ujmezok.end());
                 //aktualismezok=ujmezok;
                 //cout<<"chapci"<<endl;
-                cnt+=ujmezok.size();
+                //cnt+=ujmezok.size();
                 //cout<<"dhapci"<<endl;
             }
 
