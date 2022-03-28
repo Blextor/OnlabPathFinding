@@ -76,6 +76,17 @@ inline bool operator<(const UtPos& lhs, const UtPos& rhs)
     return lhs.becsles < rhs.becsles;
 }
 
+inline bool operator<(const Pos& a, const Pos& b)
+{
+    /// Aranyat érő két sor
+    if (a.time==b.time){
+        if (a.x==b.x){
+            return a.y > b.y;
+        }
+        return a.x < b.x;
+    }
+    return a.time < b.time;
+}
 
 
 
@@ -974,77 +985,96 @@ int Palya::dis(int x, int xv, int y, int yv){  // távolság számítás
             opt_becsult.push_back(temp2);
         }
 
+        int cnt2 = 0, cnt3 = 0;
         for (int zzz=0; zzz<celok; zzz++){
             cout<<"celok: "<<zzz<<" ";
             int time=0;
-            list<Pos> aktualismezok; aktualismezok.push_back(Pos(cel_pos[zzz].x,cel_pos[zzz].y)); // 256 lehet max a pálya mérete
+            set<Pos> aktualismezok; aktualismezok.insert(Pos(cel_pos[zzz].x,cel_pos[zzz].y)); // 256 lehet max a pálya mérete
+            set<Pos>::iterator it;
             int cnt=1;
             opt_becsult[cel_pos[zzz].x][cel_pos[zzz].y][zzz]=0;
             while (aktualismezok.size()!=0){
-                list<Pos> ujmezok;
-                list<Pos>::iterator it;
+
+                vector<Pos> ujmezok;
+
                 //cout<<"ahapci"<<endl;
-                for (it=aktualismezok.begin(); it!=aktualismezok.end(); it++){
+                //cout<<aktualismezok.size()<<endl;
+                for (it=aktualismezok.begin(); it!=aktualismezok.end(); /*it++*/){
+
+                    cnt2++;
                     Pos pos = *it;//aktualismezok[i];
-                    if (time==opt_becsult[pos.x][pos.y][zzz]){
+                    Pos ujpos=Pos(0,0);
+                    if (time==opt_becsult[pos.x][pos.y][zzz]){ // fordítva kellene az indexelésnek történnie
                         int aktdis = opt_becsult[pos.x][pos.y][zzz];
                         if (pos.x>0){
                             if (opt_becsult[pos.x-1][pos.y][zzz]==-1 && !mezok[0][pos.x-1][pos.y].fal){
-                                Pos ujpos(pos.x-1,pos.y);
+                                ujpos.Set(pos.x-1,pos.y,aktdis+2);
                                 ujmezok.push_back(ujpos);
                                 opt_becsult[pos.x-1][pos.y][zzz]=aktdis+2;
                             }
                             if (pos.y>0 && !mezok[0][pos.x-1][pos.y-1].fal && opt_becsult[pos.x-1][pos.y-1][zzz]==-1){
-                                Pos ujpos(pos.x-1,pos.y-1);
+                                ujpos.Set(pos.x-1,pos.y-1,aktdis+3);
                                 ujmezok.push_back(ujpos);
                                 opt_becsult[pos.x-1][pos.y-1][zzz]=aktdis+3;
                             }
                             if (pos.y<Sy-1 && !mezok[0][pos.x-1][pos.y+1].fal && opt_becsult[pos.x-1][pos.y+1][zzz]==-1){
-                                Pos ujpos(pos.x-1,pos.y+1);
+                                ujpos.Set(pos.x-1,pos.y+1,aktdis+3);
                                 ujmezok.push_back(ujpos);
                                 opt_becsult[pos.x-1][pos.y+1][zzz]=aktdis+3;
                             }
                         }
                         if (pos.x<Sx-1){
                             if (opt_becsult[pos.x+1][pos.y][zzz]==-1 && !mezok[0][pos.x+1][pos.y].fal){
-                                Pos ujpos(pos.x+1,pos.y);
+                                ujpos.Set(pos.x+1,pos.y,aktdis+2);
                                 ujmezok.push_back(ujpos);
                                 opt_becsult[pos.x+1][pos.y][zzz]=aktdis+2;
                             }
                             if (pos.y>0 && !mezok[0][pos.x+1][pos.y-1].fal && opt_becsult[pos.x+1][pos.y-1][zzz]==-1){
-                                Pos ujpos(pos.x+1,pos.y-1);
+                                ujpos.Set(pos.x+1,pos.y-1,aktdis+3);
                                 ujmezok.push_back(ujpos);
                                 opt_becsult[pos.x+1][pos.y-1][zzz]=aktdis+3;
                             }
                             if (pos.y<Sy-1 && !mezok[0][pos.x+1][pos.y+1].fal && opt_becsult[pos.x+1][pos.y+1][zzz]==-1){
-                                Pos ujpos(pos.x+1,pos.y+1);
+                                ujpos.Set(pos.x+1,pos.y+1,aktdis+3);
                                 ujmezok.push_back(ujpos);
                                 opt_becsult[pos.x+1][pos.y+1][zzz]=aktdis+3;
                             }
                         }
                         if (pos.y>0 && !mezok[0][pos.x][pos.y-1].fal && opt_becsult[pos.x][pos.y-1][zzz]==-1){
-                            Pos ujpos(pos.x,pos.y-1);
+                            ujpos.Set(pos.x,pos.y-1,aktdis+2);
                             ujmezok.push_back(ujpos);
                             opt_becsult[pos.x][pos.y-1][zzz]=aktdis+2;
                         }
                         if (pos.y<Sy-1 && !mezok[0][pos.x][pos.y+1].fal && opt_becsult[pos.x][pos.y+1][zzz]==-1){
-                            Pos ujpos(pos.x,pos.y+1);
+                            ujpos.Set(pos.x,pos.y+1,aktdis+2);
                             ujmezok.push_back(ujpos);
                             opt_becsult[pos.x][pos.y+1][zzz]=aktdis+2;
                         }
-                        aktualismezok.erase(it);
+                        it = aktualismezok.erase(it);
+
+                        //break;
+
+                    } //else if (time+1<=opt_becsult[pos.x][pos.y][zzz]){
+                        //break; // SZóval nem itt van a kutya elásva. Pedig az iterálást 2/3-oltam.
+                        //it++;
+                    //}
+                    else {
+                        //if (it!=aktualismezok.end())
+                        break;
+                        //it++;
                     }
+
                 }
                 time++;
                 //cout<<"bhapci"<<endl;
-                aktualismezok.insert(aktualismezok.end(), ujmezok.begin(), ujmezok.end());
+                aktualismezok.insert(ujmezok.begin(), ujmezok.end());
                 //aktualismezok=ujmezok;
                 //cout<<"chapci"<<endl;
                 cnt+=ujmezok.size();
                 //cout<<"dhapci"<<endl;
             }
 
-            cout<<cnt<<endl;
+            cout<<cnt<<" "<<cnt2<<endl;
             /*
             for (int i=0;i<Sx; i++){
                 for (int j=0; j<Sy; j++){

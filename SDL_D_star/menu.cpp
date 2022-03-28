@@ -322,6 +322,7 @@ void Menu::eventchangeSize(SDL_Event &ev){}
 void Menu::eventeditor(SDL_Event &ev){
     if (ev.type == SDL_MOUSEBUTTONDOWN){
         if (ev.button.button == 1){
+            b=true;
             int xm = ev.button.x, ym = ev.button.y;
             int x = xm*palya.Sx/PALYASZELES, y = ym*palya.Sy/PALYAMAGAS;
             if (!palya.mezok[0][x][y].fal){
@@ -329,12 +330,24 @@ void Menu::eventeditor(SDL_Event &ev){
             }
         }
         if (ev.button.button == 3){
+            c=true;
             int xm = ev.button.x, ym = ev.button.y;
             int x = xm*palya.Sx/PALYASZELES, y = ym*palya.Sy/PALYAMAGAS;
             if (palya.mezok[0][x][y].fal){
                 palya.removeFal(Fal(x,y),true);
             }
         }
+    }
+    if (ev.type == SDL_MOUSEBUTTONUP){
+        if (ev.button.button == 1)
+            b=false;
+        if (ev.button.button == 3)
+            c=false;
+    }
+
+    if (ev.type == SDL_MOUSEMOTION){
+        mouse.x = ev.motion.x;
+        mouse.y = ev.motion.y;
     }
 
 
@@ -398,7 +411,23 @@ void Menu::eventsimulate(SDL_Event &ev){
 
 void Menu::framechoose(){}
 void Menu::framechangeSize(){}
-void Menu::frameeditor(){}
+void Menu::frameeditor(){
+    if (b){
+        int xm = mouse.x, ym = mouse.y;
+        int x = xm*palya.Sx/PALYASZELES, y = ym*palya.Sy/PALYAMAGAS;
+        if (!palya.mezok[0][x][y].fal){
+            palya.addFal(Fal(x,y,a),true);
+        }
+    }
+    if (c){
+            cout<<"OKI"<<endl;
+        int xm = mouse.x, ym = mouse.y;
+        int x = xm*palya.Sx/PALYASZELES, y = ym*palya.Sy/PALYAMAGAS;
+        if (palya.mezok[0][x][y].fal){
+            palya.removeFal(Fal(x,y,a),true);
+        }
+    }
+}
 
 void Menu::framesimulate(){
     //cout<<"true"<<a<<true<<endl;

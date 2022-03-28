@@ -18,7 +18,11 @@ class Menu{
 
     vector<string> modok;
 
+    // TODO szépítés
     bool a = false;
+    bool b = false;
+    bool c = false;
+    Pos mouse =Pos(0,0);
 
     void drawChangeSize(SDL_Renderer &renderer, SDL_Window &window);
     void drawEditor(SDL_Renderer &renderer, SDL_Window &window);
