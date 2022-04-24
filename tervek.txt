@@ -1,0 +1,29 @@
+Tervek szerint:
+- járókelők pozíciója továbbá nem diszkrét értékeket vehet csak fel
+- a megoldás dinamikusabb, előre nem meghatározott útvonalkereséssel dolgozik
+- a pálya háromszögekre bontva fog felépülni, ezeket lehet súlyozni annak függvényében, 
+	milyen nehéz azon a helyen áthaladni
+- minimális fizikát is igényel a megoldás, hiszen nem lefoglalják előre a járókelők maguknak az útvonalat, 
+	hanem ott helyben eldöntik, hogy ki a gyorsabb, erősebb, határozottabb, illetve kit hányan "tolnak" hátulról
+
++ EXTRA:
+	- megfelelő tömeg eloszlás: ha egy ajtónál sokan állnak, akkor a másik ajtót próbál keresni
+	- mozgó objektumok, ajtók/ forgó ajtók, 
+
+
+Jelenleg megoldott:
+- kezdetleges pályaszerkesztő
+- járókelők alapjai
+
+Megoldásra vár:
+- útvonalkeresőnek alkalmas adat-struktúra
+- járókelők mozgásának kivitelezése, fizikája, kirajzolása
+- pályaszerkesztő és a háromszögek súlyokkal történő kiegészítése
+	esetleg a háromszögek kisebb háromszögekre történő bontása
+- fájlból betölthető pályák
+- járókelők kézi és automatikus lehelyezése, automatikus esetbe fájlból betöltve
+- járókelők időponthoz kötött útvonalterve (hiszen valamikor megállnak/leülnek)
+- pályaelemek: bejárat, kijárat, szék, asztal, ajtó, forgóajtó, oszlop, fal
+- szobákra bontás: segíti az útvonalkeresést, szobához tartozik mindig legalább egy kijárat például, 
+	a tűzvédelmi menekülési tervekből ez könnyen kinyerhető adat, így miért is ne lehetne vele dolgozni
+

@@ -1,0 +1,33 @@
+# depslib dependency file v1.0
+1649593948 source:c:\users\boldizsar\desktop\c++\room\main.cpp
+	"common.h"
+
+1650654674 c:\users\boldizsar\desktop\c++\room\common.h
+	<vector>
+	<string>
+	<iostream>
+	<SDL2/SDL.h>
+	<SDL2/SDL_image.h>
+	<SDL2/SDL2_gfxPrimitives.h>
+	<time.h>
+	<math.h>
+	<time.h>
+	<math.h>
+	<thread>
+	<WinSock2.h>
+	<WS2tcpip.h>
+	<system_error>
+	<windows.h>
+	<stdlib.h>
+
+1649593981 source:c:\users\boldizsar\desktop\c++\room\draw.cpp
+
+1650810859 source:c:\users\boldizsar\desktop\c++\room\game.cpp
+	"common.h"
+	"VecX.h"
+
+1649613867 source:c:\users\boldizsar\desktop\c++\room\vecx.cpp
+
+1649625736 c:\users\boldizsar\desktop\c++\room\vecx.h
+	<cmath>
+
