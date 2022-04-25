@@ -3,6 +3,7 @@
 using namespace std;
 
 #include "VecX.h"
+#include <list>
 
 
 struct View{
@@ -100,7 +101,8 @@ struct Csucs{
 
     //Haromszog **haromszogek;
     bool torolt;
-    unsigned int haromszogID = 0;
+    //unsigned int haromszogID = 0;
+    vector<int> haromszogID;
 
     int id;
     vec2 pos;
@@ -108,27 +110,44 @@ struct Csucs{
     Csucs(){}
     Csucs(vec2 newpos){pos=newpos; id=counter; counter++;}
 
+    void addHaromszogID(int ID){
+        haromszogID.push_back(ID);
+    }
 };
+
+/*
+list<Csucs>::[]operator (int i){
+
+}
+*/
+
 
 int Csucs::counter = 0;
 
 struct Haromszog{
     bool torolt = false;
-    Csucs A, B, C;
+    Csucs *A, *B, *C;
+    int id;
 
-    Haromszog(Csucs vA, Csucs vB, Csucs vC){
+    Haromszog(Csucs *vA, Csucs *vB, Csucs *vC, int ID=-1){
         //Csucs.counter-=3;
         A=vA; B=vB; C=vC;
+        if (id!=-1){
+            vA->addHaromszogID(ID);
+            vB->addHaromszogID(ID);
+            vC->addHaromszogID(ID);
+        }
     }
 
     double area()
     {
-       return abs((A.pos.x*(B.pos.y-C.pos.y) + B.pos.x*(C.pos.y-A.pos.y)+ C.pos.x*(A.pos.y-B.pos.y))/2.0);
+       return abs((A->pos.x*(B->pos.y-C->pos.y) + B->pos.x*(C->pos.y-A->pos.y)+ C->pos.x*(A->pos.y-B->pos.y))/2.0);
     }
 
     bool benneVanAPont(vec2 pont){
         Csucs csucs(pont);
-        double elvileg = Haromszog(A,B,csucs).area() + Haromszog(A,C,csucs).area() + Haromszog(C,B,csucs).area();
+        //Csucs *cs1 = &csucs;
+        double elvileg = Haromszog(A,B,&csucs).area() + Haromszog(A,C,&csucs).area() + Haromszog(C,B,&csucs).area();
         double epszilon = 0.01;
         if (area()+epszilon>=elvileg)
             return true;
@@ -219,12 +238,28 @@ void draw(SDL_Window &window, SDL_Renderer &renderer, vector<Player> &players, v
 }
 
 struct Data{
-    vector<Csucs> csucsok;
+
+    float csucsR = 4.f;
+
+    list<Csucs> csucsok;
+
+    Csucs* getCsucsP(int idx){
+        list<Csucs>::iterator ptr = csucsok.begin();
+        advance(ptr,idx);
+        return &*ptr;
+    }
+
+    Csucs getCsucsR(int idx){
+        list<Csucs>::iterator ptr = csucsok.begin();
+        advance(ptr,idx);
+        return *ptr;
+    }
+
     vector<vector<vector<int>>> teruletekFoglaltsagaCsucs;
     int szeleteltseg = 4, palyameret = 2;
     /// egy terület 4 pixel széles, a kezdõ képernyõ kétszeresét fedi le ez a megoldás
 
-    vector<Haromszog> haromszogek;
+    list<Haromszog> haromszogek;
     vector<vector<vector<int>>> teruletekFoglaltsagaHaromszog;
     int szeleteltsegH = 4;//, palyameretH = 2;
 
@@ -241,17 +276,17 @@ struct Data{
     }
 
     int getExistCsucs(vec2 csucs){
-        vec2 nxy = csucs+vec2(SZELES/2*palyameret,MAGAS/2*palyameret);
+        vec2 nxy = csucs+vec2(SZELES*palyameret/2,MAGAS*palyameret/2);
         vec2 n2xy = nxy/szeleteltseg;
         vector<int> csk;
-        if (n2xy.x<0 || n2xy.y<0 || n2xy.x>SZELES/szeleteltseg-1 || n2xy.y>MAGAS/szeleteltseg-1){}
+        if (n2xy.x<0 || n2xy.y<0 || n2xy.x>SZELES*palyameret/szeleteltseg-1 || n2xy.y>MAGAS*palyameret/szeleteltseg-1){}
         else
             csk = teruletekFoglaltsagaCsucs[n2xy.x][n2xy.y];
 
         int id = -1; float dis=100;
         for (int i=0; i<csk.size(); i++){
-            float dis2 = (csucsok[csk[i]].pos-csucs).length();
-            if (dis2<dis && dis2<8.f){
+            float dis2 = (getCsucsR(csk[i]).pos-csucs).length();
+            if (dis2<dis && dis2<csucsR*2){
                 id = csk[i]; dis=dis2;
             }
         }
@@ -259,32 +294,33 @@ struct Data{
     }
 
     int addNewCsucs(vec2 csucs){
-        cout<<"aa"<<endl;
         int CsucsID = getExistCsucs(csucs);
-        cout<<"aB"<<endl;
         if (CsucsID==-1){
             //Csucs a = Csucs(csucs);
             csucsok.push_back(Csucs(csucs));
-            if ((size_t)csucsok[csucsok.size()-1].id!=csucsok.size()-1){
-                cout<<"BAJ VAN! "<<csucsok[csucsok.size()-1].id<<" "<<csucsok.size()-1<<endl;
+            if ((size_t)getCsucsR(csucsok.size()-1).id!=csucsok.size()-1){
+                cout<<"BAJ VAN! "<<getCsucsR(csucsok.size()-1).id<<" "<<csucsok.size()-1<<endl;
             }
             size_t id = csucsok.size()-1;
-            vec2 nxy = csucs+vec2(SZELES/2*palyameret,MAGAS/2*palyameret);
+            vec2 nxy = csucs+vec2(SZELES*palyameret/2,MAGAS*palyameret/2);
             vec2 n2xy = nxy/szeleteltseg;
-            cout<<"BA"<<endl;
+            cout<<"ID: "<<id<<endl;
             for (int i=n2xy.x-2; i<=n2xy.x+2; i++){
                 for (int j=n2xy.y-2; j<=n2xy.y+2; j++){
-                    if (n2xy.x<0 || n2xy.y<0 || n2xy.x>SZELES/szeleteltseg-1 || n2xy.y>SZELES/szeleteltseg-1){}
+                    if (n2xy.x<0 || n2xy.y<0 || n2xy.x>SZELES*palyameret/szeleteltseg-1 || n2xy.y>SZELES*palyameret/szeleteltseg-1){
+                        //cout<<n2xy.x<<" "<<n2xy.y<<" "<<SZELES*palyameret/szeleteltseg-1<<" "<<csucs.x<<" "<<csucs.y<<" "<<nxy.x<<" "<<nxy.y<<endl;
+                        //cout<<"K";
+                    }
                     else {
-                        cout<<"BB"<<endl;
-                        if ((vec2(i,j)*szeleteltseg-nxy).length()<8){
+                        if ((vec2(i,j)*szeleteltseg-nxy).length()<csucsR*3.f){
+                            //
                             teruletekFoglaltsagaCsucs[i][j].push_back(id);
                         }
-                    cout<<"BC"<<endl;
                     }
                 }
             }
-            return csucsok[csucsok.size()-1].id;
+            cout<<endl;
+            return getCsucsR(csucsok.size()-1).id;
         }
         cout<<"CsucsID: "<<CsucsID<<endl;
         return CsucsID;
@@ -296,14 +332,13 @@ struct Data{
 
 
         // TODO nagyvonalú
-        int minX = min(min(csucsok[a].pos.x,csucsok[b].pos.x),csucsok[c].pos.x);
-        int minY = min(min(csucsok[a].pos.y,csucsok[b].pos.y),csucsok[c].pos.y);
-        int maxX = max(max(csucsok[a].pos.x,csucsok[b].pos.x),csucsok[c].pos.x);
-        int maxY = max(max(csucsok[a].pos.y,csucsok[b].pos.y),csucsok[c].pos.y);
+        int minX = min(min(getCsucsR(a).pos.x,getCsucsR(b).pos.x),getCsucsR(c).pos.x);
+        int minY = min(min(getCsucsR(a).pos.y,getCsucsR(b).pos.y),getCsucsR(c).pos.y);
+        int maxX = max(max(getCsucsR(a).pos.x,getCsucsR(b).pos.x),getCsucsR(c).pos.x);
+        int maxY = max(max(getCsucsR(a).pos.y,getCsucsR(b).pos.y),getCsucsR(c).pos.y);
 
         minX/=szeleteltsegH, minY/=szeleteltsegH, maxX/=szeleteltsegH, maxY/=szeleteltsegH;
 
-        cout<<"BB"<<endl;
         for (int i=minX; i<=maxX+1; i++){
             for (int j=minY; j<=maxY+1; j++){
                 if (i>=0 && j>=0 && i<SZELES/szeleteltsegH && j<MAGAS/szeleteltsegH){
@@ -311,27 +346,47 @@ struct Data{
                 }
             }
         }
-        cout<<"BC"<<endl;
+    }
+
+    void printAll(){
+        for (int i=0; i<csucsok.size(); i++){
+            cout<<"Csucs: id: "<<getCsucsR(i).id<<" "<<getCsucsR(i).pos.x<<" "<<getCsucsR(i).pos.y<<"\t "<<(Csucs*)getCsucsP(i)<<endl;
+        }
+        list<Haromszog>::iterator ptr = haromszogek.begin();
+            //advance(ptr,i);
+        for (int i=0; i<haromszogek.size(); i++){
+            cout<<"Haromszog: id: "<<ptr->id<<" "<<ptr->A->pos.x<<" "<<ptr->A->pos.y<<" id: "<<ptr->A<<"\t "
+                                                <<ptr->B->pos.x<<" "<<ptr->B->pos.y<<" id: "<<ptr->B<<"\t "
+                                                <<ptr->C->pos.x<<" "<<ptr->C->pos.y<<" id: "<<ptr->C<<"\t "
+
+            <<endl;
+            ptr++;
+        }
     }
 
     int createNewTris(int a, int b, int c){
-        cout<<"A"<<endl;
-        haromszogek.push_back(Haromszog(csucsok[a],csucsok[b],csucsok[c]));
 
-        cout<<"B "<<haromszogek.size()<<endl;
+
+
+        //printAll();
+        haromszogek.push_back(Haromszog(getCsucsP(a),getCsucsP(b),getCsucsP(c),haromszogek.size()-1));
+        //printAll();
+
         haromszogTeruletfoglalas(haromszogek.size()-1,a,b,c);
 
-        cout<<"C"<<endl;
         //for (int i=0; i<csucsok.size(); i++)
             //cout<<"Csucs: "<<csucsok[i].pos.x<<" "<<csucsok[i].pos.y<<endl;
         return 0;
     }
 
     void draw(SDL_Renderer &renderer, View view){
+
         for (size_t i=0; i<haromszogek.size(); i++){
-            vec2 A = view.getRelativePos(haromszogek[i].A.pos);
-            vec2 B = view.getRelativePos(haromszogek[i].B.pos);
-            vec2 C = view.getRelativePos(haromszogek[i].C.pos);
+            list<Haromszog>::iterator ptr = haromszogek.begin();
+            advance(ptr,i);
+            vec2 A = view.getRelativePos(ptr->A->pos);
+            vec2 B = view.getRelativePos(ptr->B->pos);
+            vec2 C = view.getRelativePos(ptr->C->pos);
             //bool a1 = view.inRender(cs1,0), a2 = view.inRender(cs2,0), a3 = view.inRender(cs3,0);
             //if (a1||a2||a3)
             filledTrigonRGBA(&renderer,A.x,A.y,B.x,B.y,C.x,C.y,130,140,210,100);
@@ -344,9 +399,9 @@ struct Data{
         }
 
         for (size_t i=0; i<csucsok.size(); i++){
-            vec2 RelPos = view.getRelativePos(csucsok[i].pos.x,csucsok[i].pos.y);
-            if (view.inRender(RelPos,4))
-                filledCircleRGBA(&renderer,RelPos.x,RelPos.y,4*view.zoom,255,150,34,255);
+            vec2 RelPos = view.getRelativePos(getCsucsR(i).pos.x,getCsucsR(i).pos.y);
+            if (view.inRender(RelPos,csucsR))
+                filledCircleRGBA(&renderer,RelPos.x,RelPos.y,csucsR*view.zoom,255,150,34,255);
         }
     }
 
