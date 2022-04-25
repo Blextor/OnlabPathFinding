@@ -551,7 +551,17 @@ struct UtPos{
     float becsult;
     float ossz;
 
+    vector<Csucs> eddigiCsucsok;
 
+    UtPos(){ossz=-1;}
+
+    UtPos(Csucs cs, float m, float b, UtPos utp=UtPos()){
+        csucs=cs; eddigMegtett=m; becsult=b; ossz=m+b;
+        if (utp.ossz!=-1){
+            eddigiCsucsok=utp.eddigiCsucsok;
+            eddigiCsucsok.push_back(utp.csucs);
+        }
+    }
 };
 
 inline bool operator<(const UtPos& lhs, const UtPos& rhs)
@@ -571,6 +581,18 @@ inline bool operator<(const UtPos& lhs, const UtPos& rhs)
     return lhs.ossz < rhs.ossz;
 }
 
+struct UtPosSeged{
+    int id;
+    float ossz;
+
+    UtPosSeged(int i, float o=99999.f){id=i; ossz=o;}
+};
+
+inline bool operator<(const UtPosSeged& lhs, const UtPosSeged& rhs)
+{
+    return lhs.id < rhs.id;
+}
+
 struct UtvonalKereso{
     Data *data;
 
@@ -578,10 +600,9 @@ struct UtvonalKereso{
 
     vector<UtvonalElem> UtvonalKeresesBasic(vec2 RealStart, vec2 RealEnd, int HIDcel, int HIDstart){
         //set<Csucs> csucsok;
-        vector<UtvonalElem> ret;
-        set<UtPos> csucsok;
-        Haromszog h1 = data->getHaromszogR(HIDstart);
-        int CSIDstart = h1.A->id;
+
+        //Haromszog h1 = data->getHaromszogR(HIDstart);
+        /*int CSIDstart = h1.A->id;
         float closestStart = ((h1.A->pos)-RealStart).length();
         if (closestStart>((h1.B->pos)-RealStart).length() || closestStart > ((h1.C->pos)-RealStart).length()){
             if (((h1.B->pos)-RealStart).length()>((h1.C->pos)-RealStart).length()){
@@ -591,8 +612,9 @@ struct UtvonalKereso{
                 CSIDstart = h1.B->id;
                 closestStart = ((h1.B->pos)-RealStart).length();
             }
-        }
+        }*/
 
+        /*
         Haromszog h2 = data->getHaromszogR(HIDcel);
         int CSIDend = h2.A->id;
         float closestEnd = ((h2.A->pos)-RealEnd).length();
@@ -603,6 +625,99 @@ struct UtvonalKereso{
             } else {
                 CSIDstart = h2.B->id;
                 closestEnd = ((h2.B->pos)-RealEnd).length();
+            }
+        }
+        */
+
+        set<int> celIDk;
+        celIDk.insert(data->getHaromszogR(HIDcel).A->id); celIDk.insert(data->getHaromszogR(HIDcel).B->id); celIDk.insert(data->getHaromszogR(HIDcel).C->id);
+        vector<UtvonalElem> ret;
+        set<UtPos> csucsok;
+        set<UtPosSeged> visitedCsucsId;
+        Haromszog h1 = data->getHaromszogR(HIDstart);
+        UtPos starter1 = UtPos(*(h1.A),(h1.A->pos - RealStart).length(),(h1.A->pos - RealEnd).length());
+        UtPos starter2 = UtPos(*(h1.B),(h1.B->pos - RealStart).length(),(h1.B->pos - RealEnd).length());
+        UtPos starter3 = UtPos(*(h1.C),(h1.C->pos - RealStart).length(),(h1.C->pos - RealEnd).length());
+        csucsok.insert(starter1); csucsok.insert(starter2); csucsok.insert(starter3);
+        visitedCsucsId.insert(UtPosSeged(h1.A->id,starter1.ossz)); visitedCsucsId.insert(UtPosSeged(h1.B->id,starter2.ossz)); visitedCsucsId.insert(UtPosSeged(h1.C->id,starter3.ossz));
+        while (csucsok.size()>0){
+            cout<<"csucsok.size() "<<csucsok.size()<<endl;
+
+            UtPos temp = *(csucsok.begin());
+            cout<<"csucs ossz "<<temp.ossz<<endl;
+            csucsok.erase(csucsok.begin());
+            vector<int> haromszogek = temp.csucs.haromszogID;
+            for (int i=0; i<haromszogek.size(); i++){
+                Haromszog tempH = data->getHaromszogR(haromszogek[i]);
+
+                UtPos cs1 = UtPos(*(tempH.A),temp.eddigMegtett+(tempH.A->pos - temp.csucs.pos).length(),(tempH.A->pos - RealEnd).length(),temp);
+                UtPosSeged segA(tempH.A->id,cs1.ossz);
+                if (visitedCsucsId.find(segA)!=visitedCsucsId.end()){
+                    if ((*(visitedCsucsId.find(segA))).ossz>segA.ossz){
+                        visitedCsucsId.erase(visitedCsucsId.find(segA));
+                        visitedCsucsId.insert(segA);
+                        cout<<"ADDCSUCS"<<endl;
+                        csucsok.insert(cs1);
+                    }
+                } else {
+                    visitedCsucsId.insert(segA);
+                    cout<<"ADDCSUCS"<<endl;
+                    csucsok.insert(cs1);
+                }
+
+                UtPos cs2 = UtPos(*(tempH.B),temp.eddigMegtett+(tempH.B->pos - temp.csucs.pos).length(),(tempH.B->pos - RealEnd).length(),temp);
+                UtPosSeged segB(tempH.B->id,cs2.ossz);
+                if (visitedCsucsId.find(segB)!=visitedCsucsId.end()){
+                    if ((*(visitedCsucsId.find(segB))).ossz>segB.ossz){
+                        visitedCsucsId.erase(visitedCsucsId.find(segB));
+                        visitedCsucsId.insert(segB);
+                        cout<<"ADDCSUCS"<<endl;
+                        csucsok.insert(cs2);
+                    }
+                } else {
+                    visitedCsucsId.insert(segB);
+                    cout<<"ADDCSUCS"<<endl;
+                    csucsok.insert(cs2);
+                }
+
+                UtPos cs3 = UtPos(*(tempH.C),temp.eddigMegtett+(tempH.C->pos - temp.csucs.pos).length(),(tempH.C->pos - RealEnd).length(),temp);
+                UtPosSeged segC(tempH.C->id,cs3.ossz);
+                if (visitedCsucsId.find(segC)!=visitedCsucsId.end()){
+                    if ((*(visitedCsucsId.find(segC))).ossz>segC.ossz){
+                        visitedCsucsId.erase(visitedCsucsId.find(segC));
+                        visitedCsucsId.insert(segC);
+                        cout<<"ADDCSUCS"<<endl;
+                        csucsok.insert(cs3);
+                    }
+                } else {
+                    visitedCsucsId.insert(segC);
+                    cout<<"ADDCSUCS"<<endl;
+                    csucsok.insert(cs3);
+                }
+
+
+                UtPos veg=UtPos();
+                if (celIDk.find(cs1.csucs.id)!=celIDk.end()){
+                    veg=cs1;
+                }
+                if (celIDk.find(cs2.csucs.id)!=celIDk.end()){
+                    veg=cs2;
+                }
+                if (celIDk.find(cs3.csucs.id)!=celIDk.end()){
+                    veg=cs3;
+                }
+                if (veg.ossz!=-1){
+                    vector<Csucs> utvonal = veg.eddigiCsucsok;
+                    utvonal.push_back(veg.csucs);
+                    UtvonalElem elem = UtvonalElem(RealStart,utvonal[0].pos);
+                    ret.push_back(elem);
+                    for (int j=0;j<utvonal.size()-1;j++){
+                        ret.push_back(UtvonalElem(utvonal[j].pos,utvonal[j+1].pos));
+                    }
+                    ret.push_back(UtvonalElem(utvonal[utvonal.size()-1].pos,RealEnd));
+                    cout<<"Gabriel"<<endl;
+                    return ret;
+                }
             }
         }
 
@@ -616,13 +731,16 @@ struct UtvonalKereso{
         int HIDcel = data->getHaromszogFromPont(RealEnd);
 
         cout<<(float)HIDstart<<" "<<true<<" "<<(HIDstart!=-1)<<endl;
-
-        if ((float)HIDcel==(float)HIDstart && HIDstart!=-1.f){
-            cout<<(float)HIDstart<<" aha "<<true<<" "<<(HIDstart!=-1)<<endl;
-            ret.push_back(UtvonalElem(RealStart,RealEnd));
-        }
-        else{
-            UtvonalKeresesBasic(RealStart,RealEnd,HIDcel,HIDstart);
+        if (HIDstart<0 || HIDcel<0){
+            return ret;
+        } else {
+            if (HIDcel==HIDstart){
+                cout<<(float)HIDstart<<" aha "<<true<<" "<<(HIDstart!=-1)<<endl;
+                ret.push_back(UtvonalElem(RealStart,RealEnd));
+            }
+            else{
+                ret = UtvonalKeresesBasic(RealStart,RealEnd,HIDcel,HIDstart);
+            }
         }
 
         return ret;
