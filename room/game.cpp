@@ -109,6 +109,9 @@ struct Csucs{
 
     Csucs(){}
     Csucs(vec2 newpos){pos=newpos; id=counter; counter++;}
+    Csucs(vec2 newpos, bool fs){
+        pos=newpos;
+    }
 
     void addHaromszogID(int ID){
         haromszogID.push_back(ID);
@@ -120,6 +123,7 @@ list<Csucs>::[]operator (int i){
 
 }
 */
+
 
 
 int Csucs::counter = 0;
@@ -145,7 +149,7 @@ struct Haromszog{
     }
 
     bool benneVanAPont(vec2 pont){
-        Csucs csucs(pont);
+        Csucs csucs(pont,false);
         //Csucs *cs1 = &csucs;
         double elvileg = Haromszog(A,B,&csucs).area() + Haromszog(A,C,&csucs).area() + Haromszog(C,B,&csucs).area();
         double epszilon = 0.01;
@@ -255,6 +259,18 @@ struct Data{
         return *ptr;
     }
 
+    Haromszog* getHaromszogP(int idx){
+        list<Haromszog>::iterator ptr = haromszogek.begin();
+        advance(ptr,idx);
+        return &*ptr;
+    }
+
+    Haromszog getHaromszogR(int idx){
+        list<Haromszog>::iterator ptr = haromszogek.begin();
+        advance(ptr,idx);
+        return *ptr;
+    }
+
     vector<vector<vector<int>>> teruletekFoglaltsagaCsucs;
     int szeleteltseg = 4, palyameret = 2;
     /// egy terület 4 pixel széles, a kezdõ képernyõ kétszeresét fedi le ez a megoldás
@@ -262,6 +278,14 @@ struct Data{
     list<Haromszog> haromszogek;
     vector<vector<vector<int>>> teruletekFoglaltsagaHaromszog;
     int szeleteltsegH = 4;//, palyameretH = 2;
+
+    bool inSquare(vec2 p){
+        if (p.x>=-SZELES*palyameret/2 && p.y>=-MAGAS*palyameret/2){
+            if (p.x<SZELES*palyameret/2 && p.y<MAGAS*palyameret/2)
+                return true;
+        }
+        return false;
+    }
 
     Data() {
         //clock_t t = clock();
@@ -337,11 +361,15 @@ struct Data{
         int maxX = max(max(getCsucsR(a).pos.x,getCsucsR(b).pos.x),getCsucsR(c).pos.x);
         int maxY = max(max(getCsucsR(a).pos.y,getCsucsR(b).pos.y),getCsucsR(c).pos.y);
 
+        int xp = SZELES*palyameret/2, yp = MAGAS*palyameret/2;
+        minX+=xp; maxX+=xp; minY+=yp; maxY+=yp;
         minX/=szeleteltsegH, minY/=szeleteltsegH, maxX/=szeleteltsegH, maxY/=szeleteltsegH;
+
+
 
         for (int i=minX; i<=maxX+1; i++){
             for (int j=minY; j<=maxY+1; j++){
-                if (i>=0 && j>=0 && i<SZELES/szeleteltsegH && j<MAGAS/szeleteltsegH){
+                if (i>=0 && j>=0 && i<SZELES*palyameret/szeleteltsegH && j<MAGAS*palyameret/szeleteltsegH){
                     teruletekFoglaltsagaHaromszog[i][j].push_back(id);
                 }
             }
@@ -435,23 +463,25 @@ struct CreateTri{
             }
         }
 
-        if (ev.type == SDL_MOUSEBUTTONDOWN){
-            //cout<<(int)ev.button.button<<endl;
-            if (ev.button.button==1){
-                if (state>=0 && state<3){
-                    csucsok[state] = view.getRealPos(ev.button.x,ev.button.y);
+        if (state!=-1){
+            if (ev.type == SDL_MOUSEBUTTONDOWN && ev.button.button == 1){
+                //cout<<(int)ev.button.button<<endl;
+                if (ev.button.button==1){
+                    if (state>=0 && state<3){
+                        csucsok[state] = view.getRealPos(ev.button.x,ev.button.y);
 
-                    bool ok = true;
-                    for (int i=0; i<state; i++){
-                        if ((csucsok[i]-csucsok[state]).length()<8.f){
-                            ok = false;
+                        bool ok = true;
+                        for (int i=0; i<state; i++){
+                            if ((csucsok[i]-csucsok[state]).length()<8.f){
+                                ok = false;
+                            }
                         }
-                    }
 
-                    if (ok){
-                        csucsokID[state] = data.addNewCsucs(csucsok[state]);
-                        //newcs[state] = true;
-                        state++;
+                        if (ok){
+                            csucsokID[state] = data.addNewCsucs(csucsok[state]);
+                            //newcs[state] = true;
+                            state++;
+                        }
                     }
                 }
             }
@@ -469,7 +499,8 @@ struct CreateTri{
                 csucsokID[i]=-1;
         }
 
-        csucsok[state] = view.getRealPos(ev.motion.x,ev.motion.y);
+        if (state!=-1)
+            csucsok[state] = view.getRealPos(ev.motion.x,ev.motion.y);
 
         //cout<<state<<endl;
     }
@@ -490,6 +521,8 @@ class Player2{
 
     vector<vec2> utvonal;
 
+    bool stop=true;
+
     int id;
 
     char red = rand()%256, green = rand()%256, blue = rand()%256;
@@ -503,6 +536,8 @@ public:
 
 
     void simulate(float dt){
+        if (stop)
+            return;
         if (utvonal.size()>0){
             velo += (vec2(utvonal[0].x, utvonal[1].y) - pos)*dt*speed;
 
@@ -511,6 +546,45 @@ public:
         if (velo.length()>speed)
             velo=velo.normalize()*speed;
 
+    }
+
+    void getEvent(SDL_Event &ev){
+        if (ev.type==SDL_KEYDOWN){
+            if (ev.key.keysym.sym == SDLK_l){
+                stop!=stop;
+            }
+            //if (ev.key.keysym.sym == SDLK_l){
+              //  stop!=stop;
+            //}
+        }
+        if (ev.type==SDL_MOUSEBUTTONDOWN){
+            cout<<"HAPCI "<<(int)ev.button.button<<endl;
+            if (ev.button.button==3){
+                cout<<"A"<<endl;
+                vec2 epos(ev.button.x,ev.button.y);
+                vec2 Relepos = view->getRealPos(epos);
+                if (data->inSquare(Relepos)){
+                    cout<<"B"<<endl;
+                    vec2 epos2 = (Relepos+vec2(SZELES*data->palyameret/2,MAGAS*data->palyameret/2))/data->szeleteltseg;
+                    vector<int> temp = data->teruletekFoglaltsagaHaromszog[epos2.x][epos2.y];
+                    cout<<"C"<<endl;
+                    int HID = -1;
+                    if (temp.size()>0){
+
+
+                        for (int i=0; i<temp.size(); i++){
+                            if (data->getHaromszogR(temp[i]).benneVanAPont(Relepos)){
+                                HID = temp[i];
+                                cout<<"HID: "<<temp[i]<<endl;
+                            }
+                        }
+                    }
+                    if (HID!=-1){
+
+                    }
+                }
+            }
+        }
     }
 
     void findPath(vec2 cel){
@@ -575,6 +649,8 @@ void jatek( SDL_Window &window, SDL_Renderer &renderer){
             if (ev.type == SDL_QUIT)
                 exit(0);
             crTri.getEvent(ev,view,data);
+
+            player.getEvent(ev);
             /*
             if (ev.type==SDL_MOUSEBUTTONDOWN){
                 int x = ev.button.x;
@@ -668,6 +744,7 @@ void jatek( SDL_Window &window, SDL_Renderer &renderer){
             dt*=SPEED;
             dt/=1000.f;
             dt_timer=clock();
+            player.simulate(dt);
             //if (o)
 
             clock_t tFrame = clock();
@@ -716,3 +793,5 @@ void jatek( SDL_Window &window, SDL_Renderer &renderer){
         }
     }
 }
+
+//Vége
