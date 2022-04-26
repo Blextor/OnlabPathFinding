@@ -417,7 +417,7 @@ struct Data{
 
 
         //printAll();
-        haromszogek.push_back(Haromszog(getCsucsP(a),getCsucsP(b),getCsucsP(c),haromszogek.size()-1));
+        haromszogek.push_back(Haromszog(getCsucsP(a),getCsucsP(b),getCsucsP(c),haromszogek.size()));
         //printAll();
 
         haromszogTeruletfoglalas(haromszogek.size()-1,a,b,c);
@@ -564,8 +564,7 @@ struct UtPos{
     }
 };
 
-inline bool operator<(const UtPos& lhs, const UtPos& rhs)
-{
+inline bool operator<(const UtPos& lhs, const UtPos& rhs){
     /// Aranyat érő két sor
     if (lhs.ossz==rhs.ossz){
         if (lhs.eddigMegtett == rhs.eddigMegtett){
@@ -581,6 +580,7 @@ inline bool operator<(const UtPos& lhs, const UtPos& rhs)
     return lhs.ossz < rhs.ossz;
 }
 
+
 struct UtPosSeged{
     int id;
     float ossz;
@@ -588,8 +588,7 @@ struct UtPosSeged{
     UtPosSeged(int i, float o=99999.f){id=i; ossz=o;}
 };
 
-inline bool operator<(const UtPosSeged& lhs, const UtPosSeged& rhs)
-{
+inline bool operator<(const UtPosSeged& lhs, const UtPosSeged& rhs){
     return lhs.id < rhs.id;
 }
 
@@ -697,16 +696,38 @@ struct UtvonalKereso{
 
 
                 UtPos veg=UtPos();
+                bool e1=false, e2=false, e3=false;
+                int ec=0;
                 if (celIDk.find(cs1.csucs.id)!=celIDk.end()){
                     veg=cs1;
+                    e1=true; ec++;
                 }
                 if (celIDk.find(cs2.csucs.id)!=celIDk.end()){
                     veg=cs2;
+                    e2=true; ec++;
                 }
                 if (celIDk.find(cs3.csucs.id)!=celIDk.end()){
                     veg=cs3;
+                    e3=true; ec++;
                 }
                 if (veg.ossz!=-1){
+                    if (ec>1){
+                        float eossz = 1000000.f;
+                        if (e1){
+                            veg=cs1;
+                            eossz = veg.ossz + (veg.csucs.pos-RealEnd).length();
+                        }
+                        if (e2 && cs2.ossz+(cs2.csucs.pos-RealEnd).length()<eossz){
+                            veg=cs2;
+                            eossz = veg.ossz + (veg.csucs.pos-RealEnd).length();
+                        }
+                        if (e3 && cs3.ossz+(cs3.csucs.pos-RealEnd).length()<eossz){
+                            veg=cs3;
+                            eossz = veg.ossz + (veg.csucs.pos-RealEnd).length();
+                        }
+                        cout<<"veg.ossz: "<<eossz<<endl;
+                    }
+
                     vector<Csucs> utvonal = veg.eddigiCsucsok;
                     utvonal.push_back(veg.csucs);
                     UtvonalElem elem = UtvonalElem(RealStart,utvonal[0].pos);
@@ -909,7 +930,8 @@ void jatek( SDL_Window &window, SDL_Renderer &renderer){
                     z=true;
                 }
                 if (ev.key.keysym.sym == SDLK_o){
-                        data.createRandomTris(100,view);
+                        //data.createRandomTris(100,view);
+                    data.printAll();
                     //o=true;
                 }
                 /*
