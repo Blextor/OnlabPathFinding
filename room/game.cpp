@@ -550,16 +550,18 @@ struct UtPos{
     float eddigMegtett;
     float becsult;
     float ossz;
+    bool first = false;
 
     vector<Csucs> eddigiCsucsok;
 
     UtPos(){ossz=-1;}
 
-    UtPos(Csucs cs, float m, float b, UtPos utp=UtPos()){
-        csucs=cs; eddigMegtett=m; becsult=b; ossz=m+b;
+    UtPos(Csucs cs, float m, float b, UtPos utp=UtPos(), bool f=false){
+        csucs=cs; eddigMegtett=m; becsult=b; ossz=m+b; first=f;
         if (utp.ossz!=-1){
             eddigiCsucsok=utp.eddigiCsucsok;
-            eddigiCsucsok.push_back(utp.csucs);
+            if (!first)
+                eddigiCsucsok.push_back(utp.csucs);
         }
     }
 };
@@ -628,42 +630,79 @@ struct UtvonalKereso{
         }
         */
 
-        set<int> celIDk;
+        set<int> celIDk, startIDk;
+        startIDk.insert(data->getHaromszogR(HIDstart).A->id); startIDk.insert(data->getHaromszogR(HIDstart).B->id); startIDk.insert(data->getHaromszogR(HIDstart).C->id);
+        cout<<"data->getHaromszogR(HIDstart).A->id "<<data->getHaromszogR(HIDstart).A->id<<" "<<data->getHaromszogR(HIDstart).B->id<<" "<<data->getHaromszogR(HIDstart).C->id<<endl;
+        cout<<"data->getHaromszogR(HIDcel).A->id "<<data->getHaromszogR(HIDcel).A->id<<" "<<data->getHaromszogR(HIDcel).B->id<<" "<<data->getHaromszogR(HIDcel).C->id<<endl;
         celIDk.insert(data->getHaromszogR(HIDcel).A->id); celIDk.insert(data->getHaromszogR(HIDcel).B->id); celIDk.insert(data->getHaromszogR(HIDcel).C->id);
         vector<UtvonalElem> ret;
         set<UtPos> csucsok;
         set<UtPosSeged> visitedCsucsId;
         Haromszog h1 = data->getHaromszogR(HIDstart);
-        UtPos starter1 = UtPos(*(h1.A),(h1.A->pos - RealStart).length(),(h1.A->pos - RealEnd).length());
-        UtPos starter2 = UtPos(*(h1.B),(h1.B->pos - RealStart).length(),(h1.B->pos - RealEnd).length());
-        UtPos starter3 = UtPos(*(h1.C),(h1.C->pos - RealStart).length(),(h1.C->pos - RealEnd).length());
+        // kiválasztom a kezdő három csúcsot, melyekkel kezdek el dolgozni
+        UtPos starter1 = UtPos(*(h1.A),(h1.A->pos - RealStart).length(),(h1.A->pos - RealEnd).length(),UtPos(),true);
+        UtPos starter2 = UtPos(*(h1.B),(h1.B->pos - RealStart).length(),(h1.B->pos - RealEnd).length(),UtPos(),true);
+        UtPos starter3 = UtPos(*(h1.C),(h1.C->pos - RealStart).length(),(h1.C->pos - RealEnd).length(),UtPos(),true);
         csucsok.insert(starter1); csucsok.insert(starter2); csucsok.insert(starter3);
+        // ezeknek az id-ját is elmentem, hogy ne derítsem fel őket később újra
         visitedCsucsId.insert(UtPosSeged(h1.A->id,starter1.ossz)); visitedCsucsId.insert(UtPosSeged(h1.B->id,starter2.ossz)); visitedCsucsId.insert(UtPosSeged(h1.C->id,starter3.ossz));
+        //amíg ki nem fogyunk csúcsokból
         while (csucsok.size()>0){
             cout<<"csucsok.size() "<<csucsok.size()<<endl;
 
-            UtPos temp = *(csucsok.begin());
+            UtPos temp = *(csucsok.begin());    // kiválasztom az első legalkalmasabbad
             cout<<"csucs ossz "<<temp.ossz<<endl;
-            csucsok.erase(csucsok.begin());
-            vector<int> haromszogek = temp.csucs.haromszogID;
-            for (int i=0; i<haromszogek.size(); i++){
-                Haromszog tempH = data->getHaromszogR(haromszogek[i]);
+            csucsok.erase(csucsok.begin());     // törlöm is
 
+            // először megvizsgálom, hogy ez a célháromszög egyik csúcsa-e,
+            // ha rátérek ennek a csúcsnak a kifejtésére, akkor biztosan nem tudok ide már gyorsabban eljutni, így ez a legjobb út
+            if (celIDk.find(temp.csucs.id)!=celIDk.end()){
+                // debug
+                cout<<temp.csucs.id<<" "<<*(celIDk.find(temp.csucs.id))<<" "<<celIDk.size()<<endl;
+                vector<Csucs> utvonal = temp.eddigiCsucsok; // mely csúcsokon is haladtunk végig?
+                cout<<"utvonal.size() "<<utvonal.size()<<endl; // debug
+                utvonal.push_back(temp.csucs); // kéne a végére a most kifejtendő súcs is
+                UtvonalElem elem = UtvonalElem(RealStart,utvonal[0].pos); // és az első útszakasz, ahol még a csúcs nélkül indul ki
+                ret.push_back(elem); // ez lesz az első útszakasz
+                for (size_t j=0;j<utvonal.size()-1;j++){ // útszakaszokat létrehozom az összes csúcsra
+                    ret.push_back(UtvonalElem(utvonal[j].pos,utvonal[j+1].pos));
+                }
+                ret.push_back(UtvonalElem(utvonal[utvonal.size()-1].pos,RealEnd)); // és a végpontba is az utoló csúccsal
+                cout<<"Gabriel"<<endl;
+                return ret; // és itt végeztünk is
+            }
+
+
+            vector<int> haromszogek = temp.csucs.haromszogID;   // és lekérem a hozzá tartozó háromszögök ID-ját
+            for (size_t i=0; i<haromszogek.size(); i++){ // ezeken zongorázok végig
+                Haromszog tempH = data->getHaromszogR(haromszogek[i]);  // lekérem a konkrét háromszöget
+
+                //3-szor megejtem ez, a háromszög 3 csúcsára egyszer-egyszer
+                // létrehozom a lehetséges új köztes uticélt, hogy melyik csúcsról is lenne szó, mennyi az addig megtett út, a becsült hátralévő és az előző megálló
                 UtPos cs1 = UtPos(*(tempH.A),temp.eddigMegtett+(tempH.A->pos - temp.csucs.pos).length(),(tempH.A->pos - RealEnd).length(),temp);
+                //ehhez kell egy kis segítség is
                 UtPosSeged segA(tempH.A->id,cs1.ossz);
+                // ugyanis az ID-kat nem akarom felfedezni újra, csak ha találtam jobb megközelítést, ahhoz a csúcshoz
                 if (visitedCsucsId.find(segA)!=visitedCsucsId.end()){
+                    // ha már felfedeztük egyszer a csúcsot, akkor kérdés, hogy ez jobb megközelítést adott-e hozzá
                     if ((*(visitedCsucsId.find(segA))).ossz>segA.ossz){
+                        // ha a felülírni kívánt eddigi megközelítésnél jobb a mostani
                         visitedCsucsId.erase(visitedCsucsId.find(segA));
+                        //kitöröljük az előzőt
                         visitedCsucsId.insert(segA);
+                        // felülírjuk a sajátommal
                         cout<<"ADDCSUCS"<<endl;
                         csucsok.insert(cs1);
+                        // és így az útvonalat is hozzáadom, a megállóhelyet
                     }
                 } else {
+                    // ha meg még nem fedeztem fel, akkor mindent hozzáadok törlés nélkül
                     visitedCsucsId.insert(segA);
                     cout<<"ADDCSUCS"<<endl;
                     csucsok.insert(cs1);
                 }
 
+                // ugyan ezt a B...
                 UtPos cs2 = UtPos(*(tempH.B),temp.eddigMegtett+(tempH.B->pos - temp.csucs.pos).length(),(tempH.B->pos - RealEnd).length(),temp);
                 UtPosSeged segB(tempH.B->id,cs2.ossz);
                 if (visitedCsucsId.find(segB)!=visitedCsucsId.end()){
@@ -679,6 +718,7 @@ struct UtvonalKereso{
                     csucsok.insert(cs2);
                 }
 
+                // és C csúcsra is
                 UtPos cs3 = UtPos(*(tempH.C),temp.eddigMegtett+(tempH.C->pos - temp.csucs.pos).length(),(tempH.C->pos - RealEnd).length(),temp);
                 UtPosSeged segC(tempH.C->id,cs3.ossz);
                 if (visitedCsucsId.find(segC)!=visitedCsucsId.end()){
@@ -695,6 +735,7 @@ struct UtvonalKereso{
                 }
 
 
+                /*
                 UtPos veg=UtPos();
                 bool e1=false, e2=false, e3=false;
                 int ec=0;
@@ -730,15 +771,37 @@ struct UtvonalKereso{
 
                     vector<Csucs> utvonal = veg.eddigiCsucsok;
                     utvonal.push_back(veg.csucs);
-                    UtvonalElem elem = UtvonalElem(RealStart,utvonal[0].pos);
-                    ret.push_back(elem);
-                    for (int j=0;j<utvonal.size()-1;j++){
+                    int k=0;
+                    for (size_t z=0;z<utvonal.size();z++)
+                        cout<<"utvonal[i].id: "<<utvonal[z].id<<endl;
+                    if (utvonal.size()>1){
+
+                        if (startIDk.find(utvonal[1].id)!=startIDk.end()){
+                                cout<<"YEY"<<endl;
+                            UtvonalElem elem = UtvonalElem(RealStart,utvonal[1].pos);
+                            ret.push_back(elem);
+                            k=1;
+                        } else {
+                            cout<<"OH"<<endl;
+                            UtvonalElem elem = UtvonalElem(RealStart,utvonal[0].pos);
+                            ret.push_back(elem);
+                        }
+                    } else {
+                        cout<<"OH2"<<endl;
+                        UtvonalElem elem = UtvonalElem(RealStart,utvonal[0].pos);
+                        ret.push_back(elem);
+                    }
+                    //
+                    //if (startIDk.find(utvonal[1].id)!=startIDk.end())
+                      //  k=1;
+                    for (size_t j=k;j<utvonal.size()-1;j++){
                         ret.push_back(UtvonalElem(utvonal[j].pos,utvonal[j+1].pos));
                     }
                     ret.push_back(UtvonalElem(utvonal[utvonal.size()-1].pos,RealEnd));
                     cout<<"Gabriel"<<endl;
                     return ret;
                 }
+                */
             }
         }
 
