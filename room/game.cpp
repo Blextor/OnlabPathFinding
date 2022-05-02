@@ -779,45 +779,13 @@ struct UtvonalKereso{
             return input;
         }
 
-        /*
-        //"jobbra" körbejárom
-        Haromszog jhr = data->getHaromszogR(startHID_1);
-        while (true){
-
-        }
-        */
     }
 
     vector<UtvonalElem> UtvonalKeresesBasic(vec2 RealStart, vec2 RealEnd, int HIDcel, int HIDstart){
         //set<Csucs> csucsok;
 
         //Haromszog h1 = data->getHaromszogR(HIDstart);
-        /*int CSIDstart = h1.A->id;
-        float closestStart = ((h1.A->pos)-RealStart).length();
-        if (closestStart>((h1.B->pos)-RealStart).length() || closestStart > ((h1.C->pos)-RealStart).length()){
-            if (((h1.B->pos)-RealStart).length()>((h1.C->pos)-RealStart).length()){
-                CSIDstart = h1.C->id;
-                closestStart = ((h1.C->pos)-RealStart).length();
-            } else {
-                CSIDstart = h1.B->id;
-                closestStart = ((h1.B->pos)-RealStart).length();
-            }
-        }*/
 
-        /*
-        Haromszog h2 = data->getHaromszogR(HIDcel);
-        int CSIDend = h2.A->id;
-        float closestEnd = ((h2.A->pos)-RealEnd).length();
-        if (closestEnd>((h2.B->pos)-RealEnd).length() || closestEnd > ((h2.C->pos)-RealEnd).length()){
-            if (((h2.B->pos)-RealEnd).length()>((h2.C->pos)-RealEnd).length()){
-                CSIDstart = h2.C->id;
-                closestEnd = ((h2.C->pos)-RealEnd).length();
-            } else {
-                CSIDstart = h2.B->id;
-                closestEnd = ((h2.B->pos)-RealEnd).length();
-            }
-        }
-        */
 
         set<int> celIDk, startIDk;
         startIDk.insert(data->getHaromszogR(HIDstart).A->id); startIDk.insert(data->getHaromszogR(HIDstart).B->id); startIDk.insert(data->getHaromszogR(HIDstart).C->id);
@@ -935,75 +903,6 @@ struct UtvonalKereso{
                         csucsok.insert(cs3);
                     }
                 }
-
-
-                /*
-                UtPos veg=UtPos();
-                bool e1=false, e2=false, e3=false;
-                int ec=0;
-                if (celIDk.find(cs1.csucs.id)!=celIDk.end()){
-                    veg=cs1;
-                    e1=true; ec++;
-                }
-                if (celIDk.find(cs2.csucs.id)!=celIDk.end()){
-                    veg=cs2;
-                    e2=true; ec++;
-                }
-                if (celIDk.find(cs3.csucs.id)!=celIDk.end()){
-                    veg=cs3;
-                    e3=true; ec++;
-                }
-                if (veg.ossz!=-1){
-                    if (ec>1){
-                        float eossz = 1000000.f;
-                        if (e1){
-                            veg=cs1;
-                            eossz = veg.ossz + (veg.csucs.pos-RealEnd).length();
-                        }
-                        if (e2 && cs2.ossz+(cs2.csucs.pos-RealEnd).length()<eossz){
-                            veg=cs2;
-                            eossz = veg.ossz + (veg.csucs.pos-RealEnd).length();
-                        }
-                        if (e3 && cs3.ossz+(cs3.csucs.pos-RealEnd).length()<eossz){
-                            veg=cs3;
-                            eossz = veg.ossz + (veg.csucs.pos-RealEnd).length();
-                        }
-                        cout<<"veg.ossz: "<<eossz<<endl;
-                    }
-
-                    vector<Csucs> utvonal = veg.eddigiCsucsok;
-                    utvonal.push_back(veg.csucs);
-                    int k=0;
-                    for (size_t z=0;z<utvonal.size();z++)
-                        cout<<"utvonal[i].id: "<<utvonal[z].id<<endl;
-                    if (utvonal.size()>1){
-
-                        if (startIDk.find(utvonal[1].id)!=startIDk.end()){
-                                cout<<"YEY"<<endl;
-                            UtvonalElem elem = UtvonalElem(RealStart,utvonal[1].pos);
-                            ret.push_back(elem);
-                            k=1;
-                        } else {
-                            cout<<"OH"<<endl;
-                            UtvonalElem elem = UtvonalElem(RealStart,utvonal[0].pos);
-                            ret.push_back(elem);
-                        }
-                    } else {
-                        cout<<"OH2"<<endl;
-                        UtvonalElem elem = UtvonalElem(RealStart,utvonal[0].pos);
-                        ret.push_back(elem);
-                    }
-                    //
-                    //if (startIDk.find(utvonal[1].id)!=startIDk.end())
-                      //  k=1;
-                    for (size_t j=k;j<utvonal.size()-1;j++){
-                        ret.push_back(UtvonalElem(utvonal[j].pos,utvonal[j+1].pos));
-                    }
-                    ret.push_back(UtvonalElem(utvonal[utvonal.size()-1].pos,RealEnd));
-                    cout<<"Gabriel"<<endl;
-                    return ret;
-                }
-                */
             }
         }
 
