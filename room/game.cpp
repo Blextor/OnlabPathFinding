@@ -135,6 +135,7 @@ struct Csucs{
     }
 
     void addHaromszogID(int ID){
+        cout<<"CsucsHaromSzogID : "<<id<<" "<<ID<<endl;
         haromszogID.push_back(ID);
     }
 };
@@ -308,6 +309,16 @@ struct Data{
     vector<Csucs> csucsokV;
     int vecCsL = 0;
 
+    vector<vector<vector<int>>> teruletekFoglaltsagaCsucs;
+    int szeleteltseg = 4, palyameret = 2;
+    /// egy terület 4 pixel széles, a kezdõ képernyõ kétszeresét fedi le ez a megoldás
+
+    list<Haromszog> haromszogek;
+    vector<vector<vector<int>>> teruletekFoglaltsagaHaromszog;
+    int szeleteltsegH = 4;//, palyameretH = 2;
+
+    list<Wall> falak;
+
     Csucs* getCsucsP(int idx){
         list<Csucs>::iterator ptr = csucsok.begin();
         advance(ptr,idx);
@@ -342,15 +353,7 @@ struct Data{
         return *ptr;
     }
 
-    vector<vector<vector<int>>> teruletekFoglaltsagaCsucs;
-    int szeleteltseg = 4, palyameret = 2;
-    /// egy terület 4 pixel széles, a kezdõ képernyõ kétszeresét fedi le ez a megoldás
 
-    list<Haromszog> haromszogek;
-    vector<vector<vector<int>>> teruletekFoglaltsagaHaromszog;
-    int szeleteltsegH = 4;//, palyameretH = 2;
-
-    list<Wall> falak;
 
 
     bool inSquare(vec2 p){
@@ -490,7 +493,9 @@ struct Data{
     int createNewTris(int a, int b, int c){
         //printAll();
         Csucs *ac=getCsucsP(a), *bc=getCsucsP(b), *cc=getCsucsP(c);
+
         haromszogek.push_back(Haromszog(ac,bc,cc,haromszogek.size()));
+        cout<<"HAROMSZOGEK.SIZE: "<<haromszogek.size()<<endl;
         bool ah = (*ac).uj, bh=(*bc).uj, ch=(*cc).uj;
 
 
@@ -587,8 +592,10 @@ struct Data{
 
         for (size_t i=0; i<csucsok.size(); i++){
             vec2 RelPos = view.getRelativePos(getCsucsR(i).pos.x,getCsucsR(i).pos.y);
-            if (view.inRender(RelPos,csucsR))
+            if (view.inRender(RelPos,csucsR)){
                 filledCircleRGBA(&renderer,RelPos.x,RelPos.y,csucsR*view.zoom,255,150,34,255);
+                stringRGBA(&renderer,RelPos.x,RelPos.y,to_string(i).c_str(),255,255,255,255);
+            }
         }
     }
 
@@ -886,7 +893,7 @@ struct UtvonalKereso{
 
     UtvonalKereso(Data *DATA){data=DATA;}
 
-    UtPos UtvonalKeresesVagas(UtPos input, vec2 startP){
+    UtPos UtvonalKeresesVagas(UtPos input, vec2 startP, vec2 endP){
         vagasok++;
         if (input.eddigiCsucsok.size()==0){
             // ez az első csúcs, nincs mit rövidíteni
@@ -896,13 +903,17 @@ struct UtvonalKereso{
         else if (input.eddigiCsucsok.size()==1){
             ///cout<<"Egyetlen csucs"<<endl;
             // ez a második csúcs, ekkor a kiindulópontból kell indítani a szakaszt, nem csúcsból így külön eset
+
+
+            /*
             Haromszog tempH = data->getHaromszogR(data->getHaromszogIDFromPont(startP));
             Haromszog tempHelozo = data->getHaromszogR(data->getHaromszogIDFromPont(startP));
             ///cout<<"startP: "<<startP.x<<" "<<startP.y<<endl;
-            vec2 /*szakaszS = startP,*/ szakaszV = input.csucs.pos;
+            //vec2 szakaszV = input.csucs.pos;
             ///cout<<"startP: "<<szakaszV.x<<" "<<szakaszV.y<<endl;
             bool hapci = false;
             bool first = true;
+            */
 
             t3 = clock();
 
@@ -919,6 +930,7 @@ struct UtvonalKereso{
             vagas1+=clock()-t3;
             return ret2;
 
+            /*
             while (true){
                 t3 = clock();
                 //set<int> startHCSID; startHCSID.insert(tempH.A->id); startHCSID.insert(tempH.B->id); startHCSID.insert(tempH.C->id);
@@ -1015,14 +1027,14 @@ struct UtvonalKereso{
 
                     //vagasok1+=cs1.haromszogID.size();
                     //vector<int> haromszogIDk = cs1.haromszogID;
-                    /*
+
                     for (size_t i=0; i<cs1.haromszogID.size(); i++){
                         haromszogIDk.push_back(cs1.haromszogID[i]);
                         ///cout<<"data->getCsucsR(CSID1).haromszogID[i] "<<data->getCsucsR(CSID1).haromszogID[i]<<" "<<CSID1<<endl;
                     }
-                    */
 
-                    /*
+
+
                     vagasok2+=cs2.haromszogID.size();
                     for (size_t i=0; i<cs2.haromszogID.size(); i++){
                         ///cout<<"data->getCsucsR(CSID2).haromszogID[i] "<<data->getCsucsR(CSID2).haromszogID[i]<<" "<<CSID2<<" "<<data->getCsucsR(CSID2).haromszogID.size()<<endl;
@@ -1037,10 +1049,11 @@ struct UtvonalKereso{
                     }
                     if (!oks)
                         return input;
-                    */
+
                 }
                 vagas3+=clock()-t3;
             }
+            */
 
         }
         else {
@@ -1069,7 +1082,61 @@ struct UtvonalKereso{
                     }
                 }
             }*/
-            return input;
+
+            vector<Csucs> utvonal; utvonal.resize(1+1+input.eddigiCsucsok.size());
+            utvonal[0]=Csucs(startP, false);
+            for (int i=0; i<input.eddigiCsucsok.size(); i++){
+                utvonal[i+1]=input.eddigiCsucsok[i];
+            }
+            utvonal[utvonal.size()-1]=input.csucs;
+
+            for (int i=utvonal.size()-1; i>0; i--){ // végétől nézve megnézem, hogy meddig tudok egyenesen menni a kezdőcsúcsból
+                list<Wall>::iterator it = data->falak.begin();
+                for (int j=0; j<data->falak.size(); j++){
+                    if (MetsziNemCsakErenti(utvonal[0].pos,utvonal[i].pos,(*it).cs1->pos,(*it).cs2->pos))
+                        break;
+                    it++;
+                    if (j==data->falak.size()-1){
+                        vector<Csucs> temp; temp.resize(utvonal.size()-i+1);
+                        temp[0]=utvonal[0];
+                        for (int k=i; k<utvonal.size(); k++)
+                            temp[k-i+1]=utvonal[k];
+                        utvonal=temp;
+                        i=0;
+                        break;
+                    }
+                }
+            }
+
+            for (int i=0; i<utvonal.size()-2; i++){ // elejétől nézve megnézem, hogy mettől tudok egyenesen menni a végcsúcsba
+                list<Wall>::iterator it = data->falak.begin();
+                for (int j=0; j<data->falak.size(); j++){
+                    if (MetsziNemCsakErenti(utvonal[utvonal.size()-1].pos,utvonal[i].pos,(*it).cs1->pos,(*it).cs2->pos))
+                        break;
+                    it++;
+                    if (j==data->falak.size()-1){
+                        vector<Csucs> temp; temp.resize(i+2);
+                        //temp[0]=utvonal[0];
+                        for (int k=0; k<=i; k++)
+                            temp[k]=utvonal[k];
+                        temp[temp.size()-1]=utvonal[utvonal.size()-1];
+                        utvonal=temp;
+                        i=0;
+                        break;
+                    }
+                }
+            }
+
+            UtPos ret;
+            ret.eddigiCsucsok=utvonal; ret.eddigiCsucsok.pop_back();
+            ret.csucs=utvonal[utvonal.size()-1];
+            ret.becsult = (ret.csucs.pos-endP).length();
+            for (int i=0;i<utvonal.size()-1;i++){
+                ret.eddigMegtett+=(utvonal[i+1].pos-utvonal[i].pos).length();
+            }
+            ret.ossz=ret.becsult+ret.eddigMegtett;
+            return ret;
+            //return input;
         }
 
     }
@@ -1086,7 +1153,9 @@ struct UtvonalKereso{
         if (Tdebug) cout<<"data->getHaromszogR(HIDstart).A->id "<<data->getHaromszogR(HIDstart).A->id<<" "<<data->getHaromszogR(HIDstart).B->id<<" "<<data->getHaromszogR(HIDstart).C->id<<endl;
         if (Tdebug) cout<<"data->getHaromszogR(HIDcel).A->id "<<data->getHaromszogR(HIDcel).A->id<<" "<<data->getHaromszogR(HIDcel).B->id<<" "<<data->getHaromszogR(HIDcel).C->id<<endl;
         celIDk.insert(data->getHaromszogR(HIDcel).A->id); celIDk.insert(data->getHaromszogR(HIDcel).B->id); celIDk.insert(data->getHaromszogR(HIDcel).C->id);
-        vector<UtvonalElem> ret;
+        vector<UtvonalElem> ret, emptyRet;
+        vector<UtvonalElem> retBest;
+        float shortestPath = 1000000.f;
         set<UtPos> csucsok;
         set<UtPosSeged> visitedCsucsId;
         Haromszog h1 = data->getHaromszogR(HIDstart);
@@ -1098,36 +1167,68 @@ struct UtvonalKereso{
         // ezeknek az id-ját is elmentem, hogy ne derítsem fel őket később újra
         visitedCsucsId.insert(UtPosSeged(h1.A->id,starter1.ossz)); visitedCsucsId.insert(UtPosSeged(h1.B->id,starter2.ossz)); visitedCsucsId.insert(UtPosSeged(h1.C->id,starter3.ossz));
         //amíg ki nem fogyunk csúcsokból
+
+        int celIDcnt = 0;       // nem csak a célháromszög egyik csúcsát fejtem ki, hanem közelező az összeset is
+        set<int> felfedezettCelIDk; // ebbe gyűjtöm a felfedezetteket
+
         while (csucsok.size()>0){
             if (Tdebug) cout<<"csucsok.size() "<<csucsok.size()<<endl;
 
             UtPos temp = *(csucsok.begin());    // kiválasztom az első legalkalmasabbad
             if (Tdebug) cout<<"csucs ossz "<<temp.ossz<<endl;
             csucsok.erase(csucsok.begin());     // törlöm is
+            cout<<"Csucs ID: "<<temp.csucs.id<<" "<<data->csucsok.size()<<endl;
 
             // először megvizsgálom, hogy ez a célháromszög egyik csúcsa-e,
             // ha rátérek ennek a csúcsnak a kifejtésére, akkor biztosan nem tudok ide már gyorsabban eljutni, így ez a legjobb út
             if (celIDk.find(temp.csucs.id)!=celIDk.end()){
                 // debug
+                if (felfedezettCelIDk.find(temp.csucs.id)==felfedezettCelIDk.end()){ // ha még nem volt felfedezve
+                    celIDcnt++; felfedezettCelIDk.insert(temp.csucs.id); // akkor ez újnak számít, és el is mentem a csúcs id-ját
+                }
                 if (Tdebug) cout<<temp.csucs.id<<" "<<*(celIDk.find(temp.csucs.id))<<" "<<celIDk.size()<<endl;
+
+                temp.eddigiCsucsok.push_back(temp.csucs);
+                temp.csucs=Csucs(RealEnd,false);  // TODO
+                temp = UtvonalKeresesVagas(temp,RealStart,RealEnd); //re
+
                 vector<Csucs> utvonal = temp.eddigiCsucsok; // mely csúcsokon is haladtunk végig?
                 if (Tdebug) cout<<"utvonal.size() "<<utvonal.size()<<endl; // debug
                 utvonal.push_back(temp.csucs); // kéne a végére a most kifejtendő súcs is
+                float pathLenght = 0;
                 UtvonalElem elem = UtvonalElem(RealStart,utvonal[0].pos); // és az első útszakasz, ahol még a csúcs nélkül indul ki
+                pathLenght+=(RealStart-utvonal[0].pos).length();
                 ret.push_back(elem); // ez lesz az első útszakasz
                 for (size_t j=0;j<utvonal.size()-1;j++){ // útszakaszokat létrehozom az összes csúcsra
                     ret.push_back(UtvonalElem(utvonal[j].pos,utvonal[j+1].pos));
+                    pathLenght+=(utvonal[j].pos,utvonal[j+1].pos).length();
                 }
                 ret.push_back(UtvonalElem(utvonal[utvonal.size()-1].pos,RealEnd)); // és a végpontba is az utoló csúccsal
+                pathLenght+=(RealEnd-utvonal[utvonal.size()-1].pos).length();
                 if (Tdebug) cout<<"Gabriel"<<endl;
-                return ret; // és itt végeztünk is
+                if (pathLenght<shortestPath){
+                    retBest=ret;
+                    shortestPath=pathLenght;
+                }
+                //cout<<"RetBest: "<<retBest.size()<<endl;
+                //ret=emptyRet;
+                //cout<<"RetBest: "<<retBest.size()<<endl;
+                if (celIDcnt==3){
+                    cout<<"RetBest: "<<retBest.size()<<endl;
+                    return retBest; // és itt végeztünk is
+
+                }
             }
 
 
-            vector<int> haromszogek = temp.csucs.haromszogID;   // és lekérem a hozzá tartozó háromszögök ID-ját
+            vector<int> haromszogek = (data->getCsucsR(temp.csucs.id)).haromszogID; //temp.csucs.haromszogID;   // és lekérem a hozzá tartozó háromszögök ID-ját
+            cout<<"haromszogID Size: "<<haromszogek.size()<<endl;
             for (size_t i=0; i<haromszogek.size(); i++){ // ezeken zongorázok végig
+                cout<<"IDK: "<<endl;
+                cout<<"ID: "<< haromszogek[i]+1<<endl;
+                cout<<"ID: "<< haromszogek[i]+1<<endl;
                 Haromszog tempH = data->getHaromszogR(haromszogek[i]);  // lekérem a konkrét háromszöget
-
+                cout<<"tempH IDA: "<<tempH.A->id<<endl;
                 //3-szor megejtem ez, a háromszög 3 csúcsára egyszer-egyszer
                 // létrehozom a lehetséges új köztes uticélt, hogy melyik csúcsról is lenne szó, mennyi az addig megtett út, a becsült hátralévő és az előző megálló
                 UtPos cs1 = UtPos(*(tempH.A),temp.eddigMegtett+(tempH.A->pos - temp.csucs.pos).length(),(tempH.A->pos - RealEnd).length(),temp);
@@ -1137,7 +1238,7 @@ struct UtvonalKereso{
 
                 if (startIDk.find(tempH.A->id)==startIDk.end()){
                     t =clock();
-                    cs1 = UtvonalKeresesVagas(cs1,RealStart);
+                    cs1 = UtvonalKeresesVagas(cs1,RealStart,RealEnd);
                     vagas += clock()-t;
                     UtPosSeged segA(tempH.A->id,cs1.ossz);
                     // ugyanis az ID-kat nem akarom felfedezni újra, csak ha találtam jobb megközelítést, ahhoz a csúcshoz
@@ -1164,9 +1265,10 @@ struct UtvonalKereso{
 
                 // ugyan ezt a B...
                 UtPos cs2 = UtPos(*(tempH.B),temp.eddigMegtett+(tempH.B->pos - temp.csucs.pos).length(),(tempH.B->pos - RealEnd).length(),temp);
+                cout<<"tempH IDB: "<<tempH.B->id<<endl;
                 if (startIDk.find(tempH.B->id)==startIDk.end()){
                     t =clock();
-                    cs2 = UtvonalKeresesVagas(cs2,RealStart);
+                    cs2 = UtvonalKeresesVagas(cs2,RealStart,RealEnd);
                     vagas += clock()-t;
                     UtPosSeged segB(tempH.B->id,cs2.ossz);
                     if (visitedCsucsId.find(segB)!=visitedCsucsId.end()){
@@ -1185,9 +1287,10 @@ struct UtvonalKereso{
 
                 // és C csúcsra is
                 UtPos cs3 = UtPos(*(tempH.C),temp.eddigMegtett+(tempH.C->pos - temp.csucs.pos).length(),(tempH.C->pos - RealEnd).length(),temp);
+                cout<<"tempH IDC: "<<tempH.C->id<<endl;
                 if (startIDk.find(tempH.C->id)==startIDk.end()){
                     t =clock();
-                    cs3 = UtvonalKeresesVagas(cs3,RealStart);
+                    cs3 = UtvonalKeresesVagas(cs3,RealStart,RealEnd);
                     vagas += clock()-t;
                     UtPosSeged segC(tempH.C->id,cs3.ossz);
                     if (visitedCsucsId.find(segC)!=visitedCsucsId.end()){
@@ -1206,6 +1309,10 @@ struct UtvonalKereso{
             }
         }
 
+        if (retBest.size()!=0){
+            cout<<"Error: "<<celIDcnt<<endl;
+            return retBest;
+        }
         return ret;
     }
 
