@@ -56,12 +56,14 @@
 
 1649613867 source:c:\users\boldizsar\documents\github\onlabpathfinding\room\vecx.cpp
 
-1651446525 source:c:\users\boldizsar\documents\github\onlabpathfinding\room\game.cpp
+1651828738 source:c:\users\boldizsar\documents\github\onlabpathfinding\room\game.cpp
 	"common.h"
+	<fstream>
 	"VecX.h"
 	<list>
 	<set>
+	<algorithm>
 
-1649625736 c:\users\boldizsar\documents\github\onlabpathfinding\room\vecx.h
+1651828616 c:\users\boldizsar\documents\github\onlabpathfinding\room\vecx.h
 	<cmath>
 

@@ -48,6 +48,14 @@ public:
 		return *this;
 	}
 
+    bool operator!=(vec2 v) {
+		return !(x == v.x && y == v.y);
+	}
+
+    bool operator==(vec2 v) {
+		return (x == v.x && y == v.y);
+	}
+
 	vec2 operator+(double s) {
 		return vec2(x + s, y + s);
 	}
