@@ -165,15 +165,15 @@ struct Haromszog{
             C->addHaromszogID(ID);
             cout<<"New Haromszog: ID: "<<id<<", csucsok: A: "<<A->id<<", B: "<<B->id<<", C: "<<C->id<<endl;
             cout<<A<<" ";
-            for (int i=0; i<A->haromszogID.size(); i++)
+            for (size_t i=0; i<A->haromszogID.size(); i++)
                 cout<<A->haromszogID[i]<<" ";
             cout<<endl;
             cout<<B<<" ";
-            for (int i=0; i<B->haromszogID.size(); i++)
+            for (size_t i=0; i<B->haromszogID.size(); i++)
                 cout<<B->haromszogID[i]<<" ";
             cout<<endl;
             cout<<C<<" ";
-            for (int i=0; i<C->haromszogID.size(); i++)
+            for (size_t i=0; i<C->haromszogID.size(); i++)
                 cout<<C->haromszogID[i]<<" ";
             cout<<endl;
         }
@@ -336,10 +336,10 @@ struct Data{
     Haromszog failSafeHar = Haromszog();
 
     Csucs* getCsucsP(int idx){
-        cout<<"alma "<<idx<<endl;
+        //cout<<"alma "<<idx<<endl;
         if (idx==-1)
             return &failSafeCs;
-        cout<<"korte"<<endl;
+        //cout<<"korte"<<endl;
         list<Csucs>::iterator ptr = csucsok.begin();
         advance(ptr,idx);
         return &*ptr;
@@ -350,7 +350,7 @@ struct Data{
             cout<<csucsok.size()<<" Hapcula "<<listCsL<<endl;
             csucsokV.resize(csucsok.size());
             list<Csucs>::iterator it = csucsok.begin();
-            for (int i=0; i<csucsok.size(); i++){
+            for (size_t i=0; i<csucsok.size(); i++){
                 csucsokV[i]=(*it);
                 it++;
             }
@@ -389,12 +389,13 @@ struct Data{
 
     void saveMapToFile(string file){
         ofstream F; F.open(file);
-        list<Haromszog>::iterator it;
+        list<Haromszog>::iterator it = haromszogek.begin();
         for (size_t i = 0; i<haromszogek.size(); i++){
             F<<(*it).A->pos.x<<" "<<(*it).A->pos.y<<endl;
             F<<(*it).B->pos.x<<" "<<(*it).B->pos.y<<endl;
             F<<(*it).C->pos.x<<" "<<(*it).C->pos.y<<endl;
             F<<endl;
+            it++;
         }
         F.close();
     }
@@ -628,7 +629,7 @@ struct Data{
 
 
         list<Wall>::iterator it = falak.begin();
-        for (int i=0; i<falak.size(); i++){
+        for (size_t i=0; i<falak.size(); i++){
             vec2 A = view.getRelativePos(it->cs1->pos), B = view.getRelativePos(it->cs2->pos);
             lineRGBA(&renderer,A.x,A.y,B.x,B.y,50,50,255,200);
             it++;
@@ -965,7 +966,7 @@ struct UtvonalKereso{
                 return input;
 
             list<Wall>::iterator it = data->falak.begin();
-            for (int i=0; i<data->falak.size(); i++){
+            for (size_t i=0; i<data->falak.size(); i++){
                 if (MetsziNemCsakErenti(startP,input.csucs.pos,(*it).cs1->pos,(*it).cs2->pos))
                     return input;
                 it++;
@@ -1129,7 +1130,7 @@ struct UtvonalKereso{
 
             vector<Csucs> utvonal; utvonal.resize(1+1+input.eddigiCsucsok.size());
             utvonal[0]=Csucs(startP, false);
-            for (int i=0; i<input.eddigiCsucsok.size(); i++){
+            for (size_t i=0; i<input.eddigiCsucsok.size(); i++){
                 utvonal[i+1]=input.eddigiCsucsok[i];
             }
             utvonal[utvonal.size()-1]=input.csucs;
@@ -1137,14 +1138,14 @@ struct UtvonalKereso{
 
             for (int i=utvonal.size()-1; i>0; i--){ // végétől nézve megnézem, hogy meddig tudok egyenesen menni a kezdőcsúcsból
                 list<Wall>::iterator it = data->falak.begin();
-                for (int j=0; j<data->falak.size(); j++){
+                for (size_t j=0; j<data->falak.size(); j++){
                     if (MetsziNemCsakErenti(utvonal[0].pos,utvonal[i].pos,(*it).cs1->pos,(*it).cs2->pos))
                         break;
                     it++;
                     if (j==data->falak.size()-1){
                         vector<Csucs> temp; temp.resize(utvonal.size()-i+1);
                         temp[0]=utvonal[0];
-                        for (int k=i; k<utvonal.size(); k++)
+                        for (size_t k=i; k<utvonal.size(); k++)
                             temp[k-i+1]=utvonal[k];
                         utvonal=temp;
                         i=0;
@@ -1178,7 +1179,7 @@ struct UtvonalKereso{
             ret.eddigiCsucsok=utvonal; ret.eddigiCsucsok.pop_back();
             ret.csucs=utvonal[utvonal.size()-1];
             ret.becsult = (ret.csucs.pos-endP).length();
-            for (int i=0;i<utvonal.size()-1;i++){
+            for (size_t i=0;i+1<utvonal.size();i++){
                 ret.eddigMegtett+=(utvonal[i+1].pos-utvonal[i].pos).length();
             }
             ret.ossz=ret.becsult+ret.eddigMegtett;
@@ -1224,10 +1225,10 @@ struct UtvonalKereso{
             UtPos temp = *(csucsok.begin());    // kiválasztom az első legalkalmasabbad
             if (Tdebug) cout<<"csucs ossz "<<temp.ossz<<endl;
             csucsok.erase(csucsok.begin());     // törlöm is
-            cout<<"Csucs ID: "<<temp.csucs.id<<" "<<data->csucsok.size()<<endl;
-            for (int i=0; i<temp.eddigiCsucsok.size(); i++)
-                cout<<temp.eddigiCsucsok[i].id<<" ";
-            cout<<endl;
+            //cout<<"Csucs ID: "<<temp.csucs.id<<" "<<data->csucsok.size()<<endl;
+            //for (int i=0; i<temp.eddigiCsucsok.size(); i++)
+                //cout<<temp.eddigiCsucsok[i].id<<" ";
+            //cout<<endl;
 
             // először megvizsgálom, hogy ez a célháromszög egyik csúcsa-e,
             // ha rátérek ennek a csúcsnak a kifejtésére, akkor biztosan nem tudok ide már gyorsabban eljutni, így ez a legjobb út
@@ -1254,29 +1255,29 @@ struct UtvonalKereso{
                     utvonal.pop_back();
                 if (utvonal.size()==0){
                     ret.push_back(UtvonalElem(RealStart,RealEnd));
-                    cout<<"AHA"<<endl;
+                    //cout<<"AHA"<<endl;
                     return ret;
                 }
                 float pathLenght = 0;
                 UtvonalElem elem = UtvonalElem(RealStart,utvonal[0].pos); // és az első útszakasz, ahol még a csúcs nélkül indul ki
                 pathLenght+=(RealStart-utvonal[0].pos).length();
-                cout<<"pathLenght start: "<<pathLenght<<" "<<utvonal.size()<<endl;
-                for (size_t j=0; j<utvonal.size(); j++)
-                    cout<<utvonal[j].id<<" ";
+                //cout<<"pathLenght start: "<<pathLenght<<" "<<utvonal.size()<<endl;
+                //for (size_t j=0; j<utvonal.size(); j++)
+                    //cout<<utvonal[j].id<<" ";
                 ret.push_back(elem); // ez lesz az első útszakasz
-                cout<<"kalap: ";
+                //cout<<"kalap: ";
                 if (utvonal.size()>0){
                     for (size_t j=0;j<utvonal.size()-1;j++){ // útszakaszokat létrehozom az összes csúcsra
                         ret.push_back(UtvonalElem(utvonal[j].pos,utvonal[j+1].pos));
                         pathLenght+=(utvonal[j].pos,utvonal[j+1].pos).length();
-                        cout<<utvonal[j].id<<" "<<pathLenght<<" ";
+                        //cout<<utvonal[j].id<<" "<<pathLenght<<" ";
                     }
                 }
-                cout<<endl;
+                //cout<<endl;
 
                 ret.push_back(UtvonalElem(utvonal[utvonal.size()-1].pos,RealEnd)); // és a végpontba is az utoló csúccsal
                 pathLenght+=(RealEnd-utvonal[utvonal.size()-1].pos).length();
-                cout<<"pathLenght end: "<<pathLenght<<endl;
+                //cout<<"pathLenght end: "<<pathLenght<<endl;
                 if (Tdebug) cout<<"Gabriel"<<endl;
                 if (pathLenght<shortestPath){
                     retBest=ret;
@@ -1285,9 +1286,9 @@ struct UtvonalKereso{
                 //cout<<"RetBest: "<<retBest.size()<<endl;
 
                 ret=emptyRet;
-                cout<<"RetBest: "<<retBest.size()<<" "<<celIDcnt<<" "<<pathLenght<<temp2.csucs.id<<endl;
+                //cout<<"RetBest: "<<retBest.size()<<" "<<celIDcnt<<" "<<pathLenght<<temp2.csucs.id<<endl;
                 if (celIDcnt==3){
-                    cout<<"RetBest: "<<retBest.size()<<" "<<shortestPath<<endl;
+                    //cout<<"RetBest: "<<retBest.size()<<" "<<shortestPath<<endl;
                     return retBest; // és itt végeztünk is
 
                 }
@@ -1492,7 +1493,7 @@ public:
             }
         }
         if (ev.type==SDL_MOUSEBUTTONDOWN){
-            cout<<"HAPCI "<<(int)ev.button.button<<endl;
+            //cout<<"HAPCI "<<(int)ev.button.button<<endl;
             if (ev.button.button==3){
                 vec2 epos(ev.button.x,ev.button.y);
                 vec2 Realepos = view->getRealPos(epos);
