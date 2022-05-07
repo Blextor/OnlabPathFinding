@@ -21,10 +21,10 @@
 #include <stdlib.h>
 
 
-#define SZELES 480
-#define MAGAS 480
-#define PALYASZELES 480.f
-#define PALYAMAGAS 480.f
+#define SZELES 640
+#define MAGAS 640
+#define PALYASZELES 640.f
+#define PALYAMAGAS 640.f
 
 
 #define STEPS 3000           // idõpillanatok száma
