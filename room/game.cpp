@@ -1154,7 +1154,7 @@ struct UtvonalKereso{
                 }
             }
 
-            /*
+            ///*  // TODO
             for (int i=0; i<utvonal.size()-2; i++){ // elejétől nézve megnézem, hogy mettől tudok egyenesen menni a végcsúcsba
                 list<Wall>::iterator it = data->falak.begin();
                 for (int j=0; j<data->falak.size(); j++){
@@ -1173,7 +1173,7 @@ struct UtvonalKereso{
                     }
                 }
             }
-            */
+            //*/
 
             UtPos ret;
             ret.eddigiCsucsok=utvonal; ret.eddigiCsucsok.pop_back();
@@ -1195,6 +1195,7 @@ struct UtvonalKereso{
 
         //Haromszog h1 = data->getHaromszogR(HIDstart);
         bool Tdebug = false;
+        bool Tdebug2 = true;
 
         set<int> celIDk, startIDk;
         startIDk.insert(data->getHaromszogR(HIDstart).A->id); startIDk.insert(data->getHaromszogR(HIDstart).B->id); startIDk.insert(data->getHaromszogR(HIDstart).C->id);
@@ -1225,10 +1226,12 @@ struct UtvonalKereso{
             UtPos temp = *(csucsok.begin());    // kiválasztom az első legalkalmasabbad
             if (Tdebug) cout<<"csucs ossz "<<temp.ossz<<endl;
             csucsok.erase(csucsok.begin());     // törlöm is
-            //cout<<"Csucs ID: "<<temp.csucs.id<<" "<<data->csucsok.size()<<endl;
-            //for (int i=0; i<temp.eddigiCsucsok.size(); i++)
-                //cout<<temp.eddigiCsucsok[i].id<<" ";
-            //cout<<endl;
+            if (Tdebug2){
+                cout<<"Csucs ID: "<<temp.csucs.id<<" "<<data->csucsok.size()<<endl;
+                for (int i=0; i<temp.eddigiCsucsok.size(); i++)
+                    cout<<temp.eddigiCsucsok[i].id<<" ";
+                cout<<endl;
+            }
 
             // először megvizsgálom, hogy ez a célháromszög egyik csúcsa-e,
             // ha rátérek ennek a csúcsnak a kifejtésére, akkor biztosan nem tudok ide már gyorsabban eljutni, így ez a legjobb út
@@ -1245,6 +1248,11 @@ struct UtvonalKereso{
                 temp.csucs=Csucs(RealEnd,false);  // TODO
                 temp = UtvonalKeresesVagas(temp,RealStart,RealEnd); //re
 
+                if (Tdebug2){
+                    for (int i=0; i<temp.eddigiCsucsok.size(); i++)
+                        cout<<temp.eddigiCsucsok[i].id<<" ";
+                    cout<<endl;
+                }
 
                 vector<Csucs> utvonal = temp.eddigiCsucsok; // mely csúcsokon is haladtunk végig?
                 if (Tdebug) cout<<"utvonal.size() "<<utvonal.size()<<endl; // debug
@@ -1255,40 +1263,42 @@ struct UtvonalKereso{
                     utvonal.pop_back();
                 if (utvonal.size()==0){
                     ret.push_back(UtvonalElem(RealStart,RealEnd));
-                    //cout<<"AHA"<<endl;
+                    if (Tdebug2) cout<<"AHA"<<endl;
                     return ret;
                 }
                 float pathLenght = 0;
                 UtvonalElem elem = UtvonalElem(RealStart,utvonal[0].pos); // és az első útszakasz, ahol még a csúcs nélkül indul ki
                 pathLenght+=(RealStart-utvonal[0].pos).length();
-                //cout<<"pathLenght start: "<<pathLenght<<" "<<utvonal.size()<<endl;
-                //for (size_t j=0; j<utvonal.size(); j++)
-                    //cout<<utvonal[j].id<<" ";
+                if (Tdebug2) {
+                    cout<<"pathLenght start: "<<pathLenght<<" "<<utvonal.size()<<endl;
+                    for (size_t j=0; j<utvonal.size(); j++)
+                        cout<<utvonal[j].id<<" ";
+                    cout<<"kalap: ";
+                }
                 ret.push_back(elem); // ez lesz az első útszakasz
-                //cout<<"kalap: ";
                 if (utvonal.size()>0){
                     for (size_t j=0;j<utvonal.size()-1;j++){ // útszakaszokat létrehozom az összes csúcsra
                         ret.push_back(UtvonalElem(utvonal[j].pos,utvonal[j+1].pos));
-                        pathLenght+=(utvonal[j].pos,utvonal[j+1].pos).length();
-                        //cout<<utvonal[j].id<<" "<<pathLenght<<" ";
+                        pathLenght+=(utvonal[j].pos-utvonal[j+1].pos).length();
+                        if (Tdebug2) cout<<utvonal[j].id<<" "<<pathLenght<<" ";
                     }
                 }
-                //cout<<endl;
+                if (Tdebug2) cout<<endl;
 
                 ret.push_back(UtvonalElem(utvonal[utvonal.size()-1].pos,RealEnd)); // és a végpontba is az utoló csúccsal
                 pathLenght+=(RealEnd-utvonal[utvonal.size()-1].pos).length();
-                //cout<<"pathLenght end: "<<pathLenght<<endl;
+                if (Tdebug2) cout<<"pathLenght end: "<<pathLenght<<endl;
                 if (Tdebug) cout<<"Gabriel"<<endl;
                 if (pathLenght<shortestPath){
                     retBest=ret;
                     shortestPath=pathLenght;
                 }
-                //cout<<"RetBest: "<<retBest.size()<<endl;
+                if (Tdebug2) cout<<"RetBest: "<<retBest.size()<<endl;
 
                 ret=emptyRet;
-                //cout<<"RetBest: "<<retBest.size()<<" "<<celIDcnt<<" "<<pathLenght<<temp2.csucs.id<<endl;
+                if (Tdebug2) cout<<"RetBest: "<<retBest.size()<<" "<<celIDcnt<<" "<<pathLenght<<temp2.csucs.id<<endl;
                 if (celIDcnt==3){
-                    //cout<<"RetBest: "<<retBest.size()<<" "<<shortestPath<<endl;
+                    if (Tdebug2) cout<<"RetBest: "<<retBest.size()<<" "<<shortestPath<<endl;
                     return retBest; // és itt végeztünk is
 
                 }
