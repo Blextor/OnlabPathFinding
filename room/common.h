@@ -38,7 +38,7 @@
 
 #define SPEED 1.0f
 
-#define DEBUG true
+#define DEBUG false
 
 
 
