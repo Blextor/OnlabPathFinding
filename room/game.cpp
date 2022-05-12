@@ -797,6 +797,9 @@ struct UtPos{
     float ossz;
     bool first = false;
 
+    Csucs elozoCsucs;
+    float elozoMegtett = 0;
+
     int utolsoCsucs = 0;
 
     vector<Csucs> eddigiCsucsok;
@@ -885,6 +888,17 @@ bool FalonKivulCsucsokKozt(Csucs *A1, Csucs *A2, Data *data){
     return false;
 }
 
+float PontVonalTavolsag(vec2 P, vec2 A, vec2 B){
+    float x = (P-A).length();
+    float y = (P-B).length();
+    float z = (A-B).length();
+
+    float a = (x*x - y*y + z*z) / (2.f*z);
+
+    vec2 ret = (A*(z-a)+B*a)/z;
+    return (ret-P).length();
+}
+
 long int metszinemcnt = 0;
 
 bool MetsziNemCsakErenti(vec2 *A1, vec2 *A2, vec2 *B1, vec2 *B2, Data *data, vec2 &hol, bool bo = false){
@@ -908,6 +922,7 @@ bool MetsziNemCsakErenti(vec2 *A1, vec2 *A2, vec2 *B1, vec2 *B2, Data *data, vec
         double x = (b2*c1 - b1*c2)/determinant;
         double y = (a1*c2 - a2*c1)/determinant;
         hol = vec2(x,y);
+        return false;
     }
     else
     {
@@ -993,17 +1008,28 @@ struct UtvonalKereso{
             // ez a második csúcs, ekkor a kiindulópontból kell indítani a szakaszt, nem csúcsból így külön eset
             t3 = clock();
 
-            if (data->getHaromszogIDFromPont(&startP)==-1)
+            if (data->getHaromszogIDFromPont(&startP)==-1){
+                cout<<"OKIDOKI"<<endl;
                 return input;
+            }
 
             list<Wall>::iterator it = data->falak.begin();
             vec2 hol = vec2(0,0);
+            float A = 1000.f, B = 1000.f;
             for (size_t i=0; i<data->falak.size(); i++){
                 if (MetsziNemCsakErenti(&startP,&input.csucs.pos,&((*it).cs1->pos),&((*it).cs2->pos),data,hol)){
                     //utolsoCsucs=1;
                     return input;
                 }
+                A = min(A,PontVonalTavolsag(startP,((*it).cs1->pos),((*it).cs2->pos)));
+                B = min(B,PontVonalTavolsag(input.csucs.pos,((*it).cs1->pos),((*it).cs2->pos)));
                 it++;
+            }
+            float epsz = 0.01f;
+            if (A < epsz && B < epsz){
+                //cout<<"palacsinta"<<endl;
+                return input;
+
             }
             UtPos ret2 = UtPos(input.csucs,(startP-input.csucs.pos).length(),input.becsult,UtPos(),true);
             vagas1+=clock()-t3;
@@ -1043,9 +1069,11 @@ struct UtvonalKereso{
             ///*  // TODO
             bool A = false;
             //cout<<"YEY"<<endl;
+
             for (size_t i=0; i<utvonal.size()-1; i++){ // elejétől nézve megnézem, hogy mettől tudok egyenesen menni a végcsúcsba
                 //list<Wall>::iterator it = data->falak.begin();
                 vec2 hol = vec2(0,0);
+                float Atav = 1000.f, Btav = 1000.f;
                 bool B = false;
 
                 for (int j=0; j<data->falakCnt; j++){
@@ -1064,6 +1092,8 @@ struct UtvonalKereso{
                         //cout<<"TTT"<<endl;
                         break;
                     }
+                    Atav = min(Atav,PontVonalTavolsag(startP,(data->falakV[j].cs1->pos),(data->falakV[j].cs2->pos)));
+                    Btav = min(Btav,PontVonalTavolsag(input.csucs.pos,(data->falakV[j].cs1->pos),(data->falakV[j].cs2->pos)));
                     if (!A && (utvonal[utvonal.size()-1].id==data->falakV[j].cs1->id || utvonal[utvonal.size()-1].id==data->falakV[j].cs2->id))
                         A=true;
                     //cout<<"B"<<endl;
@@ -1072,10 +1102,17 @@ struct UtvonalKereso{
 
                     if (j==data->falak.size()-1){
                         //cout<<"VVV"<<endl;
+                        float epsz = 0.01f;
+                        if (Atav < epsz && Btav < epsz){
+                            //cout<<"palacsinta2"<<endl;
+                            break;
+
+                        }
                         if (A&&B){
                             if (FalonKivulCsucsokKozt(&utvonal[utvonal.size()-1],&utvonal[i],data))
                                 break;
                         }
+
                         //cout<<"ZZZ"<<endl;
                         vector<Csucs> temp; temp.resize(i+2);
                         //temp[0]=utvonal[0];
@@ -1112,7 +1149,7 @@ struct UtvonalKereso{
 
         //Haromszog h1 = data->getHaromszogR(HIDstart);
         bool Tdebug = false;
-        bool Tdebug2 = false;
+        bool Tdebug2 = true;
 
         set<int> celIDk, startIDk;
         startIDk.insert(data->getHaromszogR(HIDstart).A->id); startIDk.insert(data->getHaromszogR(HIDstart).B->id); startIDk.insert(data->getHaromszogR(HIDstart).C->id);
@@ -1324,6 +1361,7 @@ struct UtvonalKereso{
         int HIDcel = data->getHaromszogIDFromPont(&RealEnd);
 
         //cout<<(float)HIDstart<<" "<<true<<" "<<(HIDstart!=-1)<<endl;
+        cout<<"keres "<<HIDstart<<" "<<HIDcel<<endl;
         if (HIDstart<0 || HIDcel<0){
             return ret;
         } else {
@@ -1346,18 +1384,23 @@ class Player2{
     Data *data;
     UtvonalKereso *gps;
     View *view;
-    vec2 pos;
+
     vec2 velo;
+
+    //int r = rand2(), g = rand2(), b = rand2();
 
     int rang = 0;
 
 
 
     vector<UtvonalElem> utvonal;
+    float utvonalHossz = 0;
 
     bool stop=true;
 
-    int id;
+
+
+    //int aktualisUtvonalCel = 0;
 
     char red = rand()%256, green = rand()%256, blue = rand()%256;
 
@@ -1365,37 +1408,270 @@ class Player2{
 
 public:
 
+    vec2 pos;
+
+    int team = 1;
+
+    int id=-1;
+
     vec2 cel;
+    bool vanUtvonalVege = false;
+
+
+    Player2(){}
+
 
     Player2(Data *Ddata, View *View, UtvonalKereso *GPS,
-             vec2 Pos = vec2(0,0), float Speed = 1.f, float Radius = 5.f, float Mass = 1.f, vec2 Velo = vec2(0,0)){
+             vec2 Pos = vec2(0,0), int id=-1, float Speed = 100.f, float Radius = 5.f, float Mass = 1.f, vec2 Velo = vec2(0,0)){
         data=Ddata; view=View; gps=GPS;
         pos=Pos; speed=Speed; radius=Radius; mass=Mass; velo=Velo;
     }
 
 
-    void simulate(float dt){
+    void preSimulate(float dt, vector<Player2> players){
+        vec2 preVelo(0,0);
         if (stop)
             return;
+        //cout<<"Sim "<<dt<<endl;
+
         if (utvonal.size()>0){
-            velo += (vec2(utvonal[0].posEnd.x, utvonal[0].posEnd.y) - pos)*dt*speed;
+            //if (utvonal.size()>0)
+                preVelo += (vec2(utvonal[0].posEnd.x, utvonal[0].posEnd.y) - pos).normalize()*dt*speed;
 
         }
-        velo*=0.98f;
+
+        for (int i=0; i<players.size(); i++){
+            if (id!=-1 && i!=id){
+                if ((players[i].pos-pos).length()<radius+players[i].radius){
+                    preVelo+=(pos-players[i].pos).normalize()*(radius+players[i].radius - (players[i].pos-pos).length())*1.0f/**(radius+2.f)*/*dt*speed;
+                }
+            }
+        }
+
+        if (preVelo.length()>5.f)
+            preVelo = preVelo.normalize()*5.f;
+        velo+=preVelo;
+
+        if (utvonalHossz>radius)
+            velo*=0.95f;
+        else
+            velo*=0.8f;
         if (velo.length()>speed)
             velo=velo.normalize()*speed;
 
+
+    }
+
+    double vec2PointMinus(const vec2& a, const vec2& b){
+        return a.x - b.x + a.y - b.y;
+    }
+
+    double vec2PointMultiply(const vec2& a, const vec2& b){
+        return a.x * b.x + a.y * b.y;
+    }
+
+    vec2 realProjection(vec2 P, vec2 A, vec2 B){
+        float x = (P-A).length();
+        float y = (P-B).length();
+        float z = (A-B).length();
+
+        float a = (x*x - y*y + z*z) / (2.f*z);
+
+
+        if (a<=0)
+            return A;
+        if (a>=z)
+            return B;
+
+        vec2 ret = (A*(z-a)+B*a)/z;
+        return ret;
+    }
+
+
+    vec2 projection(vec2 pos, Haromszog haromszog, vec2 from, bool benneVan = true) {
+        if (!benneVan && haromszog.benneVanAPont(pos)){
+            return pos;
+        }
+        vec2 AB = haromszog.B->pos - haromszog.A->pos;
+        vec2 AC = haromszog.C->pos - haromszog.A->pos;
+        vec2 CB = haromszog.B->pos - haromszog.C->pos;
+        vec2 S = (haromszog.A->pos + haromszog.B->pos +haromszog.C->pos) / 3.f;
+
+        bool ok = false;
+        vec2 temp = HolMetszi(pos,S,haromszog.B->pos,haromszog.A->pos);
+        vec2 ret;
+        if (!ok && temp!= vec2(-1369,-1369)){
+            ret = realProjection(pos,haromszog.B->pos,haromszog.A->pos);
+            cout<<"a"<<endl;
+            ok=true;
+        }
+
+        temp = HolMetszi(pos,S,haromszog.C->pos,haromszog.A->pos);
+        if (!ok && temp!= vec2(-1369,-1369)){
+            ret = realProjection(pos,haromszog.C->pos,haromszog.A->pos);
+            cout<<"b"<<endl;
+            ok=true;
+        }
+
+        temp = HolMetszi(pos,S,haromszog.B->pos,haromszog.C->pos);
+        if (!ok && temp!= vec2(-1369,-1369)){
+            ret = realProjection(pos,haromszog.B->pos,haromszog.C->pos);
+            cout<<"c"<<endl;
+            ok=true;
+        }
+        if (!ok){
+            cout<<"HUPSZ"<<endl;
+            return from;
+
+        }
+
+        if (data->getHaromszogIDFromPont(&ret)==-1){
+            cout<<"Bakker"<<endl;
+            return from;
+        }
+
+        return ret;
+
+    }
+
+    // http://www.sunshine2k.de/coding/java/PointOnLine/PointOnLine.html
+
+    float perpDotProduct(vec2 a, vec2 b, vec2 c)
+    {
+      return (a.x - c.x) * (b.y - c.y) - (a.y - c.y) * (b.x - c.x);
+    }
+
+    float dotProduct ( vec2 a, vec2 b){
+        return perpDotProduct(a,b,vec2(0,0));
+    }
+
+    vec2 getProjectedPointOnLine(vec2 p, vec2 v1, vec2 v2)
+    {
+      // get dot product of e1, e2
+      vec2 e1 = vec2(v2.x - v1.x, v2.y - v1.y);
+      vec2 e2 = vec2(p.x - v1.x, p.y - v1.y);
+      double valDp = dotProduct(e1, e2);
+      // get length of vectors
+      double lenLineE1 = sqrt(e1.x * e1.x + e1.y * e1.y);
+      double lenLineE2 = sqrt(e2.x * e2.x + e2.y * e2.y);
+      double cos = valDp / (lenLineE1 * lenLineE2);
+      // length of v1P'
+      double projLenOfLine = cos * lenLineE2;
+      vec2 ret = vec2((int)(v1.x + (projLenOfLine * e1.x) / lenLineE1),
+                          (int)(v1.y + (projLenOfLine * e1.y) / lenLineE1));
+      return ret;
+    }
+
+    vec2 projection2(vec2 pos, Haromszog haromszog, bool benneVan = true) {
+        if (!benneVan && haromszog.benneVanAPont(pos)){
+            return pos;
+        }
+        vec2 AB = haromszog.B->pos - haromszog.A->pos;
+        vec2 AC = haromszog.C->pos - haromszog.A->pos;
+        vec2 CB = haromszog.B->pos - haromszog.C->pos;
+        vec2 S = (haromszog.A->pos + haromszog.B->pos +haromszog.C->pos) / 3.f;
+
+        if (Metszi(pos,S,haromszog.B->pos,haromszog.A->pos)){
+            pos = getProjectedPointOnLine(pos,haromszog.B->pos,haromszog.A->pos);
+        }
+
+        if (Metszi(pos,S,haromszog.C->pos,haromszog.A->pos)){
+            pos = getProjectedPointOnLine(pos,haromszog.C->pos,haromszog.A->pos);
+        }
+
+        if (Metszi(pos,S,haromszog.B->pos,haromszog.C->pos)){
+            pos = getProjectedPointOnLine(pos,haromszog.B->pos,haromszog.C->pos);
+        }
+
+        return pos;
+    }
+
+
+    bool baj = false;
+
+    void simulate(float dt){
+        int harom = data->getHaromszogIDFromPont(&pos);
+        if (utvonal.size()>0 && harom==-1 && !baj){
+            baj=true;
+            cout<<"Baj Van"<<endl;
+        }
+
+        if (harom==-1)
+            return;
+
+        pos+=velo*dt;
+
+        if (data->getHaromszogIDFromPont(&pos)==-1){
+            //pos-=velo*dt;
+            double p_proj, p3_proj;
+            Haromszog haromszog = data->getHaromszogR(harom);
+            bool ok = false;
+
+            //cout<<"hapci"<<endl;
+            pos = projection(pos,haromszog,pos-velo*dt);
+            //cout<<"hapci2"<<endl;
+
+            // AB
+            /*
+            p_proj = vec2PointMinus(pos,haromszog.A->pos)*vec2PointMinus(haromszog.B->pos,haromszog.A->pos);
+            p3_proj = vec2PointMinus(haromszog.B->pos,haromszog.A->pos)*vec2PointMinus(haromszog.B->pos,haromszog.A->pos);
+
+            if (!ok && (p_proj >= 0) && (p_proj <= p3_proj)){
+                pos = projection(pos,(haromszog.A->pos-haromszog.B->pos)); //(haromszog.A->pos * (p3_proj-p_proj) + haromszog.B->pos * p_proj)/p3_proj;
+                ok = true;
+            }
+
+            // AC
+            p_proj = vec2PointMinus(pos,haromszog.A->pos)*vec2PointMinus(haromszog.C->pos,haromszog.A->pos);
+            p3_proj = vec2PointMinus(haromszog.C->pos,haromszog.A->pos)*vec2PointMinus(haromszog.C->pos,haromszog.A->pos);
+
+            if (!ok && (p_proj >= 0) && (p_proj <= p3_proj)){
+                pos = projection(pos,(haromszog.A->pos-haromszog.C->pos));
+                ok = true;
+            }
+
+            // CB
+            p_proj = vec2PointMinus(pos,haromszog.C->pos)*vec2PointMinus(haromszog.B->pos,haromszog.C->pos);
+            p3_proj = vec2PointMinus(haromszog.B->pos,haromszog.C->pos)*vec2PointMinus(haromszog.B->pos,haromszog.C->pos);
+
+            if (!ok && (p_proj >= 0) && (p_proj <= p3_proj)){
+                pos = projection(pos,(haromszog.C->pos-haromszog.B->pos));
+                ok = true;
+            }
+            */
+        }
+
+        if (utvonal.size()>0){
+            utvonalHossz -= (utvonal[0].posStart-utvonal[0].posEnd).length();
+            utvonal[0].posStart = pos;
+            utvonalHossz += (utvonal[0].posStart-utvonal[0].posEnd).length();
+
+                if (!vanUtvonalVege || utvonal.size()>1){
+                    if ((utvonal[0].posEnd-pos).length()<radius){
+                        //0++;
+                        utvonalHossz -= (utvonal[0].posStart-utvonal[0].posEnd).length();
+                        utvonal.erase(utvonal.begin());
+
+                    }
+            }
+        }
     }
 
     void utvonalkereses(vec2 realpos){
-        bool Tdebug = false;
+        bool Tdebug = true;
         if (Tdebug) cout<<"Start"<<endl;
         utvonal = gps->UtvonalKereses(pos,realpos); // így már jó a felelősség
+//        aktualisUtvonalCel=0;
         if (Tdebug) cout<<"Bef"<<endl;
 
         if (Tdebug) {
-            if (utvonal.size()>0)
-                cout<<utvonal[0].posStart.x<<" "<<utvonal[0].posStart.y<<", "<<utvonal[utvonal.size()-1].posEnd.x<<" "<<utvonal[utvonal.size()-1].posEnd.y<<endl;
+            if (utvonal.size()>0){
+                cout<<utvonal[0].posStart.x<<" "<<utvonal[0].posStart.y<<", "<<utvonal[utvonal.size()-1].posEnd.x<<" "<<utvonal[utvonal.size()-1].posEnd.y<<" "<<utvonal.size()<<endl;
+                utvonalHossz=0;
+                for (int i=0;i<utvonal.size();i++){
+                    utvonalHossz += (utvonal[i].posStart-utvonal[i].posEnd).length();
+                }
+            }
             else
                 cout<<"Nincs utvonal."<<endl;
         }
@@ -1410,15 +1686,18 @@ public:
         cout<<", time: "<<clock()-t<<endl;
     }
 
-    void getEvent(SDL_Event &ev){
+    void getEvent(SDL_Event &ev, int player_team){
         if (ev.type==SDL_KEYDOWN){
-            if (ev.key.keysym.sym == SDLK_l){
+            if (ev.key.keysym.sym == SDLK_1){
                 stop=!stop;
+            }
+            if (ev.key.keysym.sym == SDLK_k){
+                vanUtvonalVege=!vanUtvonalVege;
             }
         }
         if (ev.type==SDL_MOUSEBUTTONDOWN){
             //cout<<"HAPCI "<<(int)ev.button.button<<endl;
-            if (ev.button.button==3){
+            if (ev.button.button==3 && player_team == team){
                 vec2 epos(ev.button.x,ev.button.y);
                 vec2 Realepos = view->getRealPos(epos);
                 cel = Realepos;
@@ -1471,13 +1750,24 @@ void jatek( SDL_Window &window, SDL_Renderer &renderer){
     View view;
     CreateTri crTri(&view,&data);
 
-    Player2 player(&data,&view,&gps);
+    //Player2 player(&data,&view,&gps);
+
+    int player_cnt = 8;
+    vector<Player2> players; players.resize(player_cnt);
+    for (int i=0; i<player_cnt; i++){
+        players[i]=Player2(&data,&view,&gps);
+        players[i].pos.x+=5.f*i;
+        players[i].id=i;
+    }
+
+    players[7].team=0;
 
 
     clock_t dt_timer = clock();
     clock_t viewEvT=0, frameResetT=0, drawT=0, crTriDrawT=0, dataDrawT=0, RenderPresentT=0;
 
     bool w=false,a=false,s=false,d=false,z=false,u=false;// o=false;
+    int player_team = 0;
     //bool up=false, down=false, right=false, left=false;
 
     while(!stop){
@@ -1495,7 +1785,12 @@ void jatek( SDL_Window &window, SDL_Renderer &renderer){
                 exit(0);
             crTri.getEvent(ev,view,data);
 
-            player.getEvent(ev);
+            //player.getEvent(ev);
+
+            for (int i=0; i<player_cnt; i++){
+                players[i].getEvent(ev,player_team);
+            }
+
             /*
             if (ev.type==SDL_MOUSEBUTTONDOWN){
                 int x = ev.button.x;
@@ -1524,6 +1819,10 @@ void jatek( SDL_Window &window, SDL_Renderer &renderer){
                 if (ev.key.keysym.sym == SDLK_z){
                     z=true;
                 }
+                if (ev.key.keysym.sym == SDLK_t){
+                    player_team++;
+                    player_team = player_team%2;
+                }
                 if (ev.key.keysym.sym == SDLK_c){
                     //z=true;
                     string fileF;
@@ -1541,7 +1840,7 @@ void jatek( SDL_Window &window, SDL_Renderer &renderer){
                         //data.createRandomTris(100,view);
                     //data.printAll();
                     falonkiv=0; data.GHIFP=0;
-                    player.utvKerTest(1);
+                    players[0].utvKerTest(1);
 
                     cout<<gps.kereses<<" "<<gps.vagas<<" "<<gps.vagas1<<" "<<gps.vagas2<<" "<<gps.vagas3<<" "<<data.idx_cnt<<" "<<gps.vagasok<<" "<<gps.vagasok1<<" "<<gps.vagasok2<<endl;
                     cout<<falonkiv<<" "<<data.GHIFP<<" "<<metszinemcnt<<endl;
@@ -1559,8 +1858,8 @@ void jatek( SDL_Window &window, SDL_Renderer &renderer){
                     clock_t t =clock();
                     vec2 h(-30,-30);
                     for (int i=0;i<10000;i++){
-                        if (data.getHaromszogIDFromPont(&h)==-1)
-                            cout<<":(";
+                        if (data.getHaromszogIDFromPont(&h)==-1){}
+                            //cout<<":(";
                     }
                     cout<<endl;
                         //down=true;
@@ -1665,12 +1964,16 @@ void jatek( SDL_Window &window, SDL_Renderer &renderer){
 
         if (frame){
 
-            float dt = clock()-dt_timer;
+            float dt = min(clock()-dt_timer,(clock_t)16);
+
             dt*=SPEED;
             dt/=1000.f;
             dt_timer=clock();
-            player.simulate(dt);
-            //if (o)
+            //player.simulate(dt,players);
+            for (int i=0; i<player_cnt; i++)
+                players[i].preSimulate(dt,players);
+            for (int i=0; i<player_cnt; i++)
+                players[i].simulate(dt);
 
             clock_t tFrame = clock();
             view.KeysDown(w,a,s,d,u,z);
@@ -1678,12 +1981,6 @@ void jatek( SDL_Window &window, SDL_Renderer &renderer){
             viewEvT+=clock()-tFrame;
             tFrame=clock();
 
-            /*
-            for (int i=0; i<players.size(); i++){
-                //players[i].Simulate(dt,players,magnets);
-                players[i].Simulate(dt,up,down,left,right);
-            }
-            */
             SDL_SetRenderDrawColor(&renderer,100,100,100,255);
             SDL_RenderClear(&renderer);
             frameResetT+=clock()-tFrame;
@@ -1700,7 +1997,10 @@ void jatek( SDL_Window &window, SDL_Renderer &renderer){
             dataDrawT+=clock()-tFrame;
             tFrame=clock();
 
-            player.draw(renderer);
+            //player.draw(renderer);
+            for (int i=0; i<player_cnt; i++){
+                players[i].draw(renderer);
+            }
             drawT+=clock()-tFrame;
             tFrame=clock();
 
