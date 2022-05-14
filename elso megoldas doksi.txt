@@ -1,0 +1,13 @@
+A járókelők útvonala megállókból áll. Ezek az UtPos-ok.
+
+
+
+UtPos:
+x, y: hol van
+time: mikor van ott
+becles: mennyi minimum az összes út
+elozo index: melyik megállóból jöttem, annak az indexe
+
+irany[3x3]: a 4 fő és 4 mellékégtáj, plusz a helyben maradás, 
+hogy mely irányokba van lehetőség a továbbjutásra
+utazasi_ido: hogy a hladás mennyi időbe fog telleni (irányból számítható segítség képpen szerepel)

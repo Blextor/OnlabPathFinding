@@ -7,9 +7,19 @@
 			<Cursor1 position="23" topLine="0" />
 		</Cursor>
 	</File>
-	<File name="game.cpp" open="1" top="1" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="draw.cpp" open="1" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="50803" topLine="329" />
+			<Cursor1 position="0" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="common.h" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="981" topLine="12" />
+		</Cursor>
+	</File>
+	<File name="game.cpp" open="1" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="51071" topLine="562" />
 		</Cursor>
 		<Folding>
 			<Collapse line="13" />
@@ -41,41 +51,32 @@
 			<Collapse line="657" />
 			<Collapse line="668" />
 			<Collapse line="780" />
-			<Collapse line="792" />
-			<Collapse line="818" />
-			<Collapse line="832" />
-			<Collapse line="839" />
-			<Collapse line="843" />
-			<Collapse line="878" />
-			<Collapse line="900" />
-			<Collapse line="951" />
-			<Collapse line="1045" />
-			<Collapse line="1077" />
+			<Collapse line="835" />
+			<Collapse line="842" />
+			<Collapse line="846" />
+			<Collapse line="881" />
+			<Collapse line="903" />
+			<Collapse line="954" />
+			<Collapse line="1048" />
+			<Collapse line="1080" />
+			<Collapse line="1614" />
+			<Collapse line="1737" />
+			<Collapse line="1793" />
 		</Folding>
 	</File>
-	<File name="common.h" open="1" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="1048" topLine="28" />
-		</Cursor>
-	</File>
-	<File name="draw.cpp" open="1" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="game.h" open="1" top="0" tabpos="6" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
 			<Cursor1 position="0" topLine="0" />
 		</Cursor>
 	</File>
-	<File name="game.h" open="1" top="0" tabpos="7" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="0" topLine="0" />
-		</Cursor>
-	</File>
-	<File name="VecX.cpp" open="1" top="0" tabpos="6" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="VecX.cpp" open="1" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
 			<Cursor1 position="0" topLine="0" />
 		</Cursor>
 	</File>
 	<File name="VecX.h" open="1" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="2142" topLine="112" />
+			<Cursor1 position="2142" topLine="56" />
 		</Cursor>
 	</File>
 </CodeBlocks_layout_file>

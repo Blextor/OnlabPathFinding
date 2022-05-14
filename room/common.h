@@ -31,9 +31,10 @@
 #define FLUID 4.0f          // folyamatos mozgás során milyen bontást alkalmazzon (lehetőleg egészet)
 #define PGX 15              // pálya szélessége
 #define PGY 15              // és magassága
-#define EXTRA_STEPS 0.3f    // pálya magasságához és szélességéhez képest mennyi extra lépést engedünk meg
+#define EXTRA_STEPS 20.0f    // pálya magasságához és szélességéhez képest mennyi extra lépést engedünk meg
 #define PLY 300            // kezdeti véletlen gyalogosok száma
-#define FORGALOM 2
+#define PLYTRY 3
+#define FORGALOM 100
 #define FALCNT 30
 
 #define SPEED 1.0f

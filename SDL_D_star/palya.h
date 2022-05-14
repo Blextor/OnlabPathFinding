@@ -23,7 +23,7 @@ struct UtPos{ // az útvonal egy megállója
     bool irany[3][3];
     int utazasi_ido=0;
 
-    UtPos(int X, int Y, int T, bool utveg);
+    UtPos(int X, int Y, int T);
 
     // teljes konstruktor
     UtPos(int X, int Y, int Time, int m, int b, int i=-1);
@@ -32,16 +32,22 @@ struct UtPos{ // az útvonal egy megállója
     void setIranyAndTime(int vx, int vy, int vtime);
 };
 
+struct Pos{
+    int x=0, y=0;
+
+    Pos(int a, int b){x=a, y=b;}
+
+    void Set(int a, int b){x=a, y=b;}
+};
+
 inline bool operator<(const UtPos& lhs, const UtPos& rhs);
 
-class Jarokelo{     // egy gyalogos osztálya
+inline bool operator<(const Pos& a, const Pos& b);
+
+class Jarokelo{     // egy gyalogos osztálya, puritán
 public:
-    // használaton kívül
-    /*
-    float irany;
-    float sebesseg;
-    float fordulas;
-    */
+    // lényegében ez egy struct, csak adatokat tárol, nagy számításokat nem végez, csak megjelenít
+
 
     vector<UtPos> utvonal;  // merre halad majd
     int start_time;         // mikor van jelen elõször a világban
@@ -55,7 +61,7 @@ public:
 
     Jarokelo();
 
-    Jarokelo(float posx, float posy, float celx, float cely, vector<UtPos> utvn, int st_time=0, int sarok=-1);
+    Jarokelo(float posx, float posy, float celx, float cely, vector<UtPos> utvn, int st_time=0, int sarok=-1);  // lényegi konstruktora
 
     void setUtvonal(vector<UtPos> utvn);
 };
@@ -91,15 +97,9 @@ public:
 
 };
 
-struct Pos{
-    int x=0, y=0;
 
-    Pos(int a, int b){x=a, y=b;}
 
-    void Set(int a, int b){x=a, y=b;}
-};
 
-inline bool operator<(const Pos& a, const Pos& b);
 
 class Palya{
     public:
@@ -109,7 +109,7 @@ class Palya{
 
     vector<vector<vector<Mezo>>> mezok; // eltárolom a STEPS idõpillanatnyi, PGX*PGY mérteû pályát
 
-    vector<vector<int>> hapci;
+    //vector<vector<int>> hapci;
 
     vector<vector<vector<int>>> opt_becsult;
 

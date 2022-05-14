@@ -1,0 +1,11 @@
+GPS ~ közlekedés, legközelebbi taxisok, ételfutárok riasztása
+Optimális útvonal ~ úrutzás, F1 optimális ív
+Hétköznapi élet ~ tudatalattink kitalálja, hogy hogyan tudnánk leggyorsabban átjutni az aluljárón
+Fontos helyzetek ~ tűzriadó, nem elpróbálva, hanem szimulálva
+Reklámokban, prezentációkban, új üzlethelységek és épületek
+Szórakoztatás képp ~ játékokban NPC-k, vagy stratégiai játékokban seregek mozgatása
+
+
+a fejezet száma ne a 2. fejezet legyen, hanem 1. Bevezetés, ha szükséges a számozás
+Nem kell a legapróbb mérettel kiírnod a neved, meg úgy a fedlapot nem szokás bogarászni.
+Láható legyen róla könnyen, hogy miről van szó alatta. 
