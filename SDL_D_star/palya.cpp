@@ -324,7 +324,6 @@ bool Palya::utvonalKereses(vector<UtPos> &utvonal, int x, int y, int celx, int c
     return false;      // ide csak útvonal nélkül juthat el
 }
 
-
 void Palya::palyakepModositAtlosan(UtPos pos){ // beszédes
     int rot = 0;
     if (pos.irany[0][2])
@@ -668,180 +667,165 @@ void Palya::JarokelokLetetele(){
     cout<<"Palya konstruktor: vege "<<t2<<endl;;
 }
 
-    Palya::Palya(bool ures){
-        cout<<"sizeof(Mezo): "<<sizeof(Mezo)<<endl;
-    }
+Palya::Palya(bool ures){ // a default konstruktor
+    //cout<<"sizeof(Mezo): "<<sizeof(Mezo)<<endl;
+}
 
-    void Palya::addFal(Fal fal, bool setMezo){
-        falak.push_back(fal);
-        if (setMezo){
-            mezok[0][fal.x][fal.y].fal=true;
+void Palya::addFal(Fal fal, bool setMezo){ // egy mezőt beállít falnak, vagy csak a listát bővíti
+    falak.push_back(fal);
+    if (setMezo){
+        mezok[0][fal.x][fal.y].fal=true;
+    }
+}
+
+void Palya::removeFal(Fal fal, bool setMezo){ // kitörli a pozícióban lévő falat
+    if (setMezo){
+        mezok[0][fal.x][fal.y].fal=false;
+    }
+    std::list<Fal>::iterator it;
+    for (it = falak.begin(); it != falak.end(); it++){
+        Fal falt = *it;
+        if (fal.x == falt.x && fal.y == falt.y){
+            falak.erase(it);
+            break;
         }
     }
+}
 
-    void Palya::removeFal(Fal fal, bool setMezo){
-        if (setMezo){
-            mezok[0][fal.x][fal.y].fal=false;
-        }
-        std::list<Fal>::iterator it;
-        cout<<"hm "<<falak.size()<<endl;
-        for (it = falak.begin(); it != falak.end(); it++){
-            Fal falt = *it;
-            cout<<"remFal: "<<fal.x<<" "<<fal.y<<" "<<falt.x<<" "<<falt.y<<endl;
-            if (fal.x == falt.x && fal.y == falt.y){
+void Palya::FalakLehelyezese(){ // a pályaszerkesztő végén a falakhelyén és körül blokkolja a mozgást az időben
+    clock_t t = clock();
+    cout<<"FalakLehelyezese"<<endl;
+    std::list<Fal>::iterator it;
+    for (it = falak.begin(); it != falak.end(); ++it){ // végig megy az összes falon
+        Fal fal = *it;
 
-                falak.erase(it);
-                cout<<"oks"<<endl;
-                break;
-            }
-        }
-    }
-
-    void Palya::FalakLehelyezese(){
-        clock_t t = clock();
-        cout<<"FalakLehelyezese"<<endl;
-        std::list<Fal>::iterator it;
-        for (it = falak.begin(); it != falak.end(); ++it){
-            Fal fal = *it;
-        //for (int j=0; j<falak.size();j++){
-            //Fal fal = falak[j];
-
-            for (int i=fal.start_time-3; i<fal.end_time; i++){
-                if (i>=0){
-                    mezok[i][fal.x][fal.y].fal = true;
-                    bool matrix[15][15];
-                    if (!fal.kerek)
-                        matrix_cpy(fal_matrix,matrix);
-                    else
-                        matrix_cpy(fal_matrix_kerek,matrix);
-                    for (int x=-2; x<3; x++){
-                        for (int y=-2; y<3; y++){
-                            if (fal.x+x>=0 && fal.x+x<Sx && fal.y+y>=0 && fal.y+y<Sy){
-                                for (int k=0; k<9; k++){
-                                    mezok[i][fal.x+x][fal.y+y].iranyok[k/3][k%3] = mezok[i][fal.x+x][fal.y+y].iranyok[k/3][k%3] || matrix[(x+2)*3+k/3][(y+2)*3+k%3];
-                                }
+        for (int i=fal.start_time-3; i<fal.end_time; i++){  // és a fal idejében minden mozgást letilt, -3, hogy előtte se mozogjanak oda
+            if (i>=0){
+                mezok[i][fal.x][fal.y].fal = true;
+                bool matrix[15][15];
+                if (!fal.kerek)
+                    matrix_cpy(fal_matrix,matrix); // ha nem kerek akkor az átlós mozgást is
+                else
+                    matrix_cpy(fal_matrix_kerek,matrix);    // ha meg kerek, akkor nem
+                for (int x=-2; x<3; x++){
+                    for (int y=-2; y<3; y++){               // a fal +-2 mezőt érintheti minden mozgás, így az állás is (igazából az állás csak 3*3-at)
+                        if (fal.x+x>=0 && fal.x+x<Sx && fal.y+y>=0 && fal.y+y<Sy){
+                            for (int k=0; k<9; k++){
+                                mezok[i][fal.x+x][fal.y+y].iranyok[k/3][k%3] = mezok[i][fal.x+x][fal.y+y].iranyok[k/3][k%3] || matrix[(x+2)*3+k/3][(y+2)*3+k%3];
                             }
                         }
                     }
                 }
             }
         }
-        cout<<"FalakLehelyezese vege: "<<(clock()-t)<<endl; t=clock();
-        celok_letrehozasa();
-        calc_opt_becsult();
+    }
+    cout<<"FalakLehelyezese vege: "<<(clock()-t)<<endl; t=clock();
+    celok_letrehozasa();    // Megvizsgálom, hogy a célok nem kerültek egy falba bele
+    calc_opt_becsult();   // miután meg vannak a falak, akkor már meg van, hogy a célok pontosan milyen messze is vannak a mezőktől
+}
+
+void Palya::celok_letrehozasa(){ // jelenleg előre betáplátak a célok
+    if (!mezok[0][0][0].fal)
+        cel_pos.push_back(Pos(0,0));
+    if (!mezok[0][Sx-1][0].fal)
+        cel_pos.push_back(Pos(Sx-1,0));
+    if (!mezok[0][0][Sy-1].fal)
+        cel_pos.push_back(Pos(0,Sy-1));
+    if (!mezok[0][Sx-1][Sy-1].fal)
+        cel_pos.push_back(Pos(Sx-1,Sy-1));
+}
+
+void Palya::calc_opt_becsult(){ // kiszámolja a mezők és a célok közti legrövidebb távolságot
+    clock_t t = clock();
+    cout<<"calc_opt_becsult"<<endl;
+    size_t celok = cel_pos.size();
+    vector<int> temp; temp.resize(celok);
+    for (int i=0; i<celok; i++){
+        temp[i]=-1;
+    }
+    vector<vector<int>> temp2;
+    for (int j=0; j<Sy; j++){
+        temp2.push_back(temp);
+    }
+    for (int i=0; i<Sx; i++){
+        opt_becsult.push_back(temp2);
     }
 
-    void Palya::celok_letrehozasa(){
-        if (!mezok[0][0][0].fal)
-            cel_pos.push_back(Pos(0,0));
-        if (!mezok[0][Sx-1][0].fal)
-            cel_pos.push_back(Pos(Sx-1,0));
-        if (!mezok[0][0][Sy-1].fal)
-            cel_pos.push_back(Pos(0,Sy-1));
-        if (!mezok[0][Sx-1][Sy-1].fal)
-            cel_pos.push_back(Pos(Sx-1,Sy-1));
-    }
+    int cnt2 = 0, cnt3 = 0;
+    for (int zzz=0; zzz<celok; zzz++){ // minden célon végig megy, és mintha kiöntene ott csomó vizet
+        int time=0, maxTime = Sx*Sy*3; // mert még egy szlalom is Sx*Sy/2 maximum
+        vector<vector<Pos>> aktualismezok; aktualismezok.resize(Sx*Sy*3+5); aktualismezok[0].push_back(Pos(cel_pos[zzz].x,cel_pos[zzz].y));
+        int cnt=1; // jelenleg egy mező van
+        opt_becsult[cel_pos[zzz].x][cel_pos[zzz].y][zzz]=0; // a cél az 0 távolságra van nyilván
+        while (time<maxTime){ // minden időpillanatban terjed a víz
 
-    void Palya::calc_opt_becsult(){
-        clock_t t = clock();
-        cout<<"calc_opt_becsult"<<endl;
-        size_t celok = cel_pos.size();
-        vector<int> temp; temp.resize(celok);
-        for (int i=0; i<celok; i++){
-            temp[i]=-1;
-        }
-        vector<vector<int>> temp2;
-        for (int j=0; j<Sy; j++){
-            temp2.push_back(temp);
-        }
-        for (int i=0; i<Sx; i++){
-            opt_becsult.push_back(temp2);
-        }
+            vector<Pos> ujmezok;
+            for (int i=0; i<aktualismezok[time].size(); i++){
 
-        int cnt2 = 0, cnt3 = 0;
-        for (int zzz=0; zzz<celok; zzz++){
-            cout<<"celok: "<<zzz<<" ";
-            int time=0, maxTime = Sx*Sy*3;
-            //set<Pos> aktualismezok; aktualismezok.insert(Pos(cel_pos[zzz].x,cel_pos[zzz].y)); // 256 lehet max a pálya mérete
-            //set<Pos>::iterator it;
-            vector<vector<Pos>> aktualismezok; aktualismezok.resize(Sx*Sy*3+5); aktualismezok[0].push_back(Pos(cel_pos[zzz].x,cel_pos[zzz].y));
-            int cnt=1;
-            opt_becsult[cel_pos[zzz].x][cel_pos[zzz].y][zzz]=0;
-            while (time<maxTime){
-
-                vector<Pos> ujmezok;
-
-                //cout<<"ahapci"<<endl;
-                //cout<<aktualismezok.size()<<endl;
-                for (int i=0; i<aktualismezok[time].size(); i++){
-
-                    cnt2++;
-                    Pos pos = aktualismezok[time][i]; //*it;//aktualismezok[i];
-                    Pos ujpos=Pos(0,0);
-                    int aktdis = opt_becsult[pos.x][pos.y][zzz];
-                    if (pos.x>0){
-                        if (opt_becsult[pos.x-1][pos.y][zzz]==-1 && !mezok[0][pos.x-1][pos.y].fal){
-                            ujpos.Set(pos.x-1,pos.y);
-                            aktualismezok[aktdis+2].push_back(ujpos);
-                            opt_becsult[pos.x-1][pos.y][zzz]=aktdis+2;
-                        }
-                        if (pos.y>0 && !mezok[0][pos.x-1][pos.y-1].fal && opt_becsult[pos.x-1][pos.y-1][zzz]==-1){
-                            ujpos.Set(pos.x-1,pos.y-1);
-                            aktualismezok[aktdis+3].push_back(ujpos);
-                            opt_becsult[pos.x-1][pos.y-1][zzz]=aktdis+3;
-                        }
-                        if (pos.y<Sy-1 && !mezok[0][pos.x-1][pos.y+1].fal && opt_becsult[pos.x-1][pos.y+1][zzz]==-1){
-                            ujpos.Set(pos.x-1,pos.y+1);
-                            aktualismezok[aktdis+3].push_back(ujpos);
-                            opt_becsult[pos.x-1][pos.y+1][zzz]=aktdis+3;
-                        }
+                cnt2++;
+                Pos pos = aktualismezok[time][i];
+                Pos ujpos=Pos(0,0);
+                int aktdis = opt_becsult[pos.x][pos.y][zzz]; // kimenti, hogy idáig milyen hosszú út vezetett
+                // majd a 8 irányba lévő mezőt távolságtól függően 2-vel vagy 3-mal későbbi idő listába teszi
+                if (pos.x>0){
+                    if (opt_becsult[pos.x-1][pos.y][zzz]==-1 && !mezok[0][pos.x-1][pos.y].fal){ // ha nem fal és még nincs is felfedezve
+                        ujpos.Set(pos.x-1,pos.y);   // új pozíció
+                        aktualismezok[aktdis+2].push_back(ujpos); // elmenti, az aktuális mezőkbe (amik majd aktdis+2 -kor lesznek aktuálisak)
+                        opt_becsult[pos.x-1][pos.y][zzz]=aktdis+2; // és a mezőt is elmenti, hogy ilyen gyorsan lehet oda eljutni
                     }
-                    if (pos.x<Sx-1){
-                        if (opt_becsult[pos.x+1][pos.y][zzz]==-1 && !mezok[0][pos.x+1][pos.y].fal){
-                            ujpos.Set(pos.x+1,pos.y);
-                            aktualismezok[aktdis+2].push_back(ujpos);
-                            opt_becsult[pos.x+1][pos.y][zzz]=aktdis+2;
-                        }
-                        if (pos.y>0 && !mezok[0][pos.x+1][pos.y-1].fal && opt_becsult[pos.x+1][pos.y-1][zzz]==-1){
-                            ujpos.Set(pos.x+1,pos.y-1);
-                            aktualismezok[aktdis+3].push_back(ujpos);
-                            opt_becsult[pos.x+1][pos.y-1][zzz]=aktdis+3;
-                        }
-                        if (pos.y<Sy-1 && !mezok[0][pos.x+1][pos.y+1].fal && opt_becsult[pos.x+1][pos.y+1][zzz]==-1){
-                            ujpos.Set(pos.x+1,pos.y+1);
-                            aktualismezok[aktdis+3].push_back(ujpos);
-                            opt_becsult[pos.x+1][pos.y+1][zzz]=aktdis+3;
-                        }
+                    if (pos.y>0 && !mezok[0][pos.x-1][pos.y-1].fal && opt_becsult[pos.x-1][pos.y-1][zzz]==-1){
+                        ujpos.Set(pos.x-1,pos.y-1);
+                        aktualismezok[aktdis+3].push_back(ujpos);
+                        opt_becsult[pos.x-1][pos.y-1][zzz]=aktdis+3;
                     }
-                    if (pos.y>0 && !mezok[0][pos.x][pos.y-1].fal && opt_becsult[pos.x][pos.y-1][zzz]==-1){
-                        ujpos.Set(pos.x,pos.y-1);
-                        aktualismezok[aktdis+2].push_back(ujpos);
-                        opt_becsult[pos.x][pos.y-1][zzz]=aktdis+2;
-                    }
-                    if (pos.y<Sy-1 && !mezok[0][pos.x][pos.y+1].fal && opt_becsult[pos.x][pos.y+1][zzz]==-1){
-                        ujpos.Set(pos.x,pos.y+1);
-                        aktualismezok[aktdis+2].push_back(ujpos);
-                        opt_becsult[pos.x][pos.y+1][zzz]=aktdis+2;
+                    if (pos.y<Sy-1 && !mezok[0][pos.x-1][pos.y+1].fal && opt_becsult[pos.x-1][pos.y+1][zzz]==-1){
+                        ujpos.Set(pos.x-1,pos.y+1);
+                        aktualismezok[aktdis+3].push_back(ujpos);
+                        opt_becsult[pos.x-1][pos.y+1][zzz]=aktdis+3;
                     }
                 }
-                time++;
-                //cout<<"bhapci"<<endl;
-                //aktualismezok.insert(ujmezok.begin(), ujmezok.end());
-                //aktualismezok=ujmezok;
-                //cout<<"chapci"<<endl;
-                //cnt+=ujmezok.size();
-                //cout<<"dhapci"<<endl;
-            }
-
-            cout<<cnt<<" "<<cnt2<<endl;
-            /*
-            for (int i=0;i<Sx; i++){
-                for (int j=0; j<Sy; j++){
-                    cout<<opt_becsult[i][j][zzz]<<"\t";
+                if (pos.x<Sx-1){
+                    if (opt_becsult[pos.x+1][pos.y][zzz]==-1 && !mezok[0][pos.x+1][pos.y].fal){
+                        ujpos.Set(pos.x+1,pos.y);
+                        aktualismezok[aktdis+2].push_back(ujpos);
+                        opt_becsult[pos.x+1][pos.y][zzz]=aktdis+2;
+                    }
+                    if (pos.y>0 && !mezok[0][pos.x+1][pos.y-1].fal && opt_becsult[pos.x+1][pos.y-1][zzz]==-1){
+                        ujpos.Set(pos.x+1,pos.y-1);
+                        aktualismezok[aktdis+3].push_back(ujpos);
+                        opt_becsult[pos.x+1][pos.y-1][zzz]=aktdis+3;
+                    }
+                    if (pos.y<Sy-1 && !mezok[0][pos.x+1][pos.y+1].fal && opt_becsult[pos.x+1][pos.y+1][zzz]==-1){
+                        ujpos.Set(pos.x+1,pos.y+1);
+                        aktualismezok[aktdis+3].push_back(ujpos);
+                        opt_becsult[pos.x+1][pos.y+1][zzz]=aktdis+3;
+                    }
                 }
-                cout<<endl;
+                if (pos.y>0 && !mezok[0][pos.x][pos.y-1].fal && opt_becsult[pos.x][pos.y-1][zzz]==-1){
+                    ujpos.Set(pos.x,pos.y-1);
+                    aktualismezok[aktdis+2].push_back(ujpos);
+                    opt_becsult[pos.x][pos.y-1][zzz]=aktdis+2;
+                }
+                if (pos.y<Sy-1 && !mezok[0][pos.x][pos.y+1].fal && opt_becsult[pos.x][pos.y+1][zzz]==-1){
+                    ujpos.Set(pos.x,pos.y+1);
+                    aktualismezok[aktdis+2].push_back(ujpos);
+                    opt_becsult[pos.x][pos.y+1][zzz]=aktdis+2;
+                }
             }
-            */
+            time++;
         }
-        cout<<"calc_opt_becsult vege: "<<(clock()-t)<<endl; t=clock();
+
+        //cout<<cnt<<" "<<cnt2<<endl;
+
+        /* debug a mezőktől a célok távolságára
+        for (int i=0;i<Sx; i++){
+            for (int j=0; j<Sy; j++){
+                cout<<opt_becsult[i][j][zzz]<<"\t";
+            }
+            cout<<endl;
+        }
+        */
+
     }
+    cout<<"calc_opt_becsult vege: "<<(clock()-t)<<endl; t=clock();
+}

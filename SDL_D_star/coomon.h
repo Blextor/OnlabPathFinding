@@ -32,26 +32,13 @@
 #define FLUID 4.0f          // folyamatos mozgás során milyen bontást alkalmazzon (lehetőleg egészet)
 #define PGX 15              // pálya szélessége
 #define PGY 15              // és magassága
-#define EXTRA_STEPS 100.0f    // pálya magasságához és szélességéhez képest mennyi extra lépést engedünk meg
+#define EXTRA_STEPS 400.0f    // pálya magasságához és szélességéhez képest mennyi extra lépést engedünk meg
 #define PLY 400            // kezdeti véletlen gyalogosok száma
 #define PLYTRY 6
-#define FORGALOM 10
+#define FORGALOM 20
 #define FALCNT 30
 
 #define DEBUG true
-
-
-
-class Eger_state {
-public:
-    int x, y;
-    int wheel_y;
-
-    Eger_state() {x=0; y=0; wheel_y=0;}
-
-    void set_wheel(int vy) {wheel_y=vy;}
-    void set_pos(int vx, int vy) {x=vx; y=vy;}
-};
 
 
 void jatek( SDL_Window &window, SDL_Renderer &renderer);
