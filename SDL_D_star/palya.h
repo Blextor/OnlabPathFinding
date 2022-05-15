@@ -32,6 +32,8 @@ struct UtPos{ // az útvonal egy megállója
     void setIranyAndTime(int vx, int vy, int vtime);
 };
 
+
+
 struct Pos{
     int x=0, y=0;
 
@@ -66,6 +68,8 @@ public:
     void setUtvonal(vector<UtPos> utvn);
 };
 
+
+
 class Mezo{ // a pálya egyetlen mezõje
 public:
     bool iranyok[3][3]; // minden irányról eltárolja, hogy szabad-e az áthaladás, vagy sem
@@ -77,7 +81,7 @@ public:
     bool fal = false;
 };
 
-int dis(int x, int xv, int y, int yv);
+
 
 class Fal{ // egyetlen fal
 public:
@@ -96,7 +100,6 @@ public:
     }
 
 };
-
 
 
 

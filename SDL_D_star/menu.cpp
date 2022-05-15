@@ -2,47 +2,23 @@
 #include "palya.h"
 
 // menü állapotai, és hogy mit kell megjeleníteniük
-/*
-Kell egy pályaméret. X, Y
-Kell egy Grid és választható objektumok. Fal, játékos, mozgó fal (ajtó)
-Kell egy idõ léptetõs gomb, hogy mikor kerüljön le az a dolog.
-A fal az felülbírál mindent.
-
-
-*/
 
 
 void megjelenites(SDL_Renderer &renderer, SDL_Window &window, Palya &palya, int step_cnt, float step_cntf = -1.0f){
     SDL_SetRenderDrawColor(&renderer,100,0,0,255);
     SDL_RenderClear(&renderer);
-    /*
-    for (int i=0; i<PGX; i++){
-        for (int j=0; j<PGY; j++){
-            boxRGBA(&renderer,SZELES/PGX*i,MAGAS/PGY*j,SZELES/PGX*i+SZELES/PGX,MAGAS/PGY*j+MAGAS/PGY,155-(i%2)*20,155-(j%2)*20,155-30,255);
-        }
-    }
-    */
-    //cout<<"pos size: "<<palya.jarokelok[0].pozicio.size()<<endl;
 
     if (step_cntf<0){
         for (size_t i=0; i<palya.jarokelok.size(); i++){
-            //cout<<palya.jarokelok[i].r<<" "<<palya.jarokelok[i].g<<" "<<palya.jarokelok[i].b<<endl;
-            //cout<<palya.jarokelok[i].pozicio[0][0]<<" "<<palya.jarokelok[i].pozicio[0][1]<<endl;
-
             filledCircleRGBA(&renderer,palya.jarokelok[i].pozicio[step_cnt][0]*SZELES/PGX+SZELES/PGX/2,palya.jarokelok[i].pozicio[step_cnt][1]*MAGAS/PGY+MAGAS/PGY/2,
                              SZELES/PGX/3,palya.jarokelok[i].r,palya.jarokelok[i].g,palya.jarokelok[i].b,255);
-
         }
     } else {
         float c,f;
-        //cout<<"valami okosat pls: "<<ceil(step_cntf)<<" "<<floor(step_cntf)<<" "<<step_cntf<<endl;
         if (step_cntf!=floor(step_cntf)){
             c = (ceil(step_cntf)-step_cntf);
             f = (step_cntf-floor(step_cntf));
-            //cout<<c<<" "<<f<<endl;
-            //cout<<"valami okosat pls: "<<ceil(step_cntf)<<" "<<floor(step_cntf)<<" "<<step_cntf<<endl;
         }
-
         for (size_t i=0; i<palya.jarokelok.size(); i++){
             float x, y;
             if (step_cntf==floor(step_cntf) || palya.jarokelok[i].pozicio[ceil(step_cntf)][0]==-1){
@@ -53,8 +29,8 @@ void megjelenites(SDL_Renderer &renderer, SDL_Window &window, Palya &palya, int 
                 y = f * (palya.jarokelok[i].pozicio[ceil(step_cntf)][1]-0.5f)*MAGAS/PGY+MAGAS/PGY/2 + c * (palya.jarokelok[i].pozicio[floor(step_cntf)][1]-0.5f)*MAGAS/PGY+MAGAS/PGY/2;
             }
             filledCircleRGBA(&renderer,
-                             x,//palya.jarokelok[i].pozicio[step_cnt][0]*SZELES/PGX+SZELES/PGX/2,
-                             y,//palya.jarokelok[i].pozicio[step_cnt][1]*MAGAS/PGY+MAGAS/PGY/2,
+                             x,
+                             y,
                              SZELES/PGX/3,
                              palya.jarokelok[i].r,
                              palya.jarokelok[i].g,
@@ -63,32 +39,6 @@ void megjelenites(SDL_Renderer &renderer, SDL_Window &window, Palya &palya, int 
         }
     }
 
-    cout<<palya.falak.size()<<endl;
-/*
-    for (int i=0; i<palya.falak.size(); i++){
-        int x = palya.falak[i].x*SZELES/PGX+SZELES/PGX/2;
-        int y = palya.falak[i].y*MAGAS/PGY+MAGAS/PGY/2;
-        boxRGBA(&renderer,
-                             x,//palya.jarokelok[i].pozicio[step_cnt][0]*SZELES/PGX+SZELES/PGX/2,
-                             y,//palya.jarokelok[i].pozicio[step_cnt][1]*MAGAS/PGY+MAGAS/PGY/2,
-                             SZELES/PGX/3,
-                             SZELES/PGX/3,
-                             100,
-                             100,
-                             100,
-                             255);
-    }
-*/
-    /*
-    for (int i=0; i<PGX; i++){
-        for (int j=0; j<PGY; j++){
-            for (int k=0; k<9; k++){
-                if (palya.mezok[step_cnt][i][j].iranyok[k/3][k%3])
-                    filledCircleRGBA(&renderer,SZELES/PGX/2+i*(SZELES/PGX)+(k/3-1)*SZELES/PGX/3,MAGAS/PGY/2+j*(MAGAS/PGY)+(k%3-1)*MAGAS/PGY/3,PGX/5,255,0,0,255);
-            }
-        }
-    }
-    */
     SDL_RenderPresent( &renderer );
 
 }
@@ -99,19 +49,14 @@ Menu::Menu(){
     modok.push_back("diskret");
 }
 
-
-
 void Menu::drawchoose(SDL_Renderer &renderer, SDL_Window &window){
     SDL_SetRenderDrawColor(&renderer,5,131,102,255);
     SDL_RenderClear(&renderer);
 
+    // mágikus számok
     int h = 160, w = 160, spacebetween = 40;
-
     int ra=239, ga=228, ba=176;
-
     int ri=159, gi=156, bi=132;
-
-
 
     for (int i=0; i<3; i++){
         int x = spacebetween+i*(h+spacebetween);
@@ -134,7 +79,6 @@ void Menu::drawchoose(SDL_Renderer &renderer, SDL_Window &window){
             boxRGBA(&renderer,x,y,x+w,y+h,ri,gi,bi,255);
         }
     }
-
 
     SDL_RenderPresent( &renderer );
 }
@@ -162,8 +106,8 @@ void Menu::draweditor(SDL_Renderer &renderer, SDL_Window &window){
             int x = fal.x*PALYASZELES/palya.Sx+PALYASZELES/palya.Sx/2;
             int y = fal.y*PALYAMAGAS/palya.Sy+PALYAMAGAS/palya.Sy/2;
             boxRGBA(&renderer,
-                                 x-PALYASZELES/palya.Sx/3,//palya.jarokelok[i].pozicio[step_cnt][0]*SZELES/PGX+SZELES/PGX/2,
-                                 y-PALYAMAGAS/palya.Sy/3,//palya.jarokelok[i].pozicio[step_cnt][1]*MAGAS/PGY+MAGAS/PGY/2,
+                                 x-PALYASZELES/palya.Sx/3,
+                                 y-PALYAMAGAS/palya.Sy/3,
                                  x+PALYASZELES/palya.Sx/3,
                                  y+PALYAMAGAS/palya.Sy/3,
                                  100,
@@ -174,8 +118,8 @@ void Menu::draweditor(SDL_Renderer &renderer, SDL_Window &window){
             int x = fal.x*PALYASZELES/palya.Sx+PALYASZELES/palya.Sx/2;
             int y = fal.y*PALYAMAGAS/palya.Sy+PALYAMAGAS/palya.Sy/2;
             filledCircleRGBA(&renderer,
-                                 x,//palya.jarokelok[i].pozicio[step_cnt][0]*SZELES/PGX+SZELES/PGX/2,
-                                 y,//palya.jarokelok[i].pozicio[step_cnt][1]*MAGAS/PGY+MAGAS/PGY/2,
+                                 x,
+                                 y,
                                  PALYASZELES/palya.Sx/3,
                                  100,
                                  100,
@@ -191,20 +135,9 @@ void Menu::draweditor(SDL_Renderer &renderer, SDL_Window &window){
 void Menu::drawsimulate(SDL_Renderer &renderer, SDL_Window &window){
     SDL_SetRenderDrawColor(&renderer,100,0,0,255);
     SDL_RenderClear(&renderer);
-    /*
-    for (int i=0; i<PGX; i++){
-        for (int j=0; j<PGY; j++){
-            boxRGBA(&renderer,SZELES/PGX*i,MAGAS/PGY*j,SZELES/PGX*i+SZELES/PGX,MAGAS/PGY*j+MAGAS/PGY,155-(i%2)*20,155-(j%2)*20,155-30,255);
-        }
-    }
-    */
-    //cout<<"pos size: "<<palya.jarokelok[0].pozicio.size()<<endl;
 
     if (step_cntf<0){
         for (size_t i=0; i<palya.jarokelok.size(); i++){
-            //cout<<palya.jarokelok[i].r<<" "<<palya.jarokelok[i].g<<" "<<palya.jarokelok[i].b<<endl;
-            //cout<<palya.jarokelok[i].pozicio[0][0]<<" "<<palya.jarokelok[i].pozicio[0][1]<<endl;
-
             filledCircleRGBA(&renderer,
                              palya.jarokelok[i].pozicio[step_cnt][0]*PALYASZELES/palya.Sx+PALYASZELES/palya.Sx/2,
                              palya.jarokelok[i].pozicio[step_cnt][1]*PALYAMAGAS/palya.Sy+PALYAMAGAS/palya.Sy/2,
@@ -217,14 +150,10 @@ void Menu::drawsimulate(SDL_Renderer &renderer, SDL_Window &window){
         }
     } else {
         float c,f;
-        //cout<<"valami okosat pls: "<<ceil(step_cntf)<<" "<<floor(step_cntf)<<" "<<step_cntf<<endl;
         if (step_cntf!=floor(step_cntf)){
             c = (ceil(step_cntf)-step_cntf);
             f = (step_cntf-floor(step_cntf));
-            //cout<<c<<" "<<f<<endl;
-            //cout<<"valami okosat pls: "<<ceil(step_cntf)<<" "<<floor(step_cntf)<<" "<<step_cntf<<endl;
         }
-
         for (size_t i=0; i<palya.jarokelok.size(); i++){
             if (palya.jarokelok[i].start_time<=step_cntf && palya.jarokelok[i].pozicio[ceil(step_cntf)][0]!=-1){
                 float x, y;
@@ -238,8 +167,8 @@ void Menu::drawsimulate(SDL_Renderer &renderer, SDL_Window &window){
                             c * (palya.jarokelok[i].pozicio[floor(step_cntf)][1]-0.5f)*PALYAMAGAS/palya.Sy+PALYAMAGAS/palya.Sy/2;
                 }
                 filledCircleRGBA(&renderer,
-                                 x,//palya.jarokelok[i].pozicio[step_cnt][0]*SZELES/PGX+SZELES/PGX/2,
-                                 y,//palya.jarokelok[i].pozicio[step_cnt][1]*MAGAS/PGY+MAGAS/PGY/2,
+                                 x,
+                                 y,
                                  PALYASZELES/palya.Sx/3,
                                  palya.jarokelok[i].r,
                                  palya.jarokelok[i].g,
@@ -251,13 +180,12 @@ void Menu::drawsimulate(SDL_Renderer &renderer, SDL_Window &window){
     std::list<Fal>::iterator it;
     for (it = palya.falak.begin(); it != palya.falak.end(); ++it){
         Fal fal = *it;
-    //for (int i=0; i<palya.falak.size(); i++){
         if (!fal.kerek){
             int x = fal.x*PALYASZELES/palya.Sx+PALYASZELES/palya.Sx/2;
             int y = fal.y*PALYAMAGAS/palya.Sy+PALYAMAGAS/palya.Sy/2;
             boxRGBA(&renderer,
-                                 x-PALYASZELES/palya.Sx/3,//palya.jarokelok[i].pozicio[step_cnt][0]*SZELES/PGX+SZELES/PGX/2,
-                                 y-PALYAMAGAS/palya.Sy/3,//palya.jarokelok[i].pozicio[step_cnt][1]*MAGAS/PGY+MAGAS/PGY/2,
+                                 x-PALYASZELES/palya.Sx/3,
+                                 y-PALYAMAGAS/palya.Sy/3,
                                  x+PALYASZELES/palya.Sx/3,
                                  y+PALYAMAGAS/palya.Sy/3,
                                  100,
@@ -268,8 +196,8 @@ void Menu::drawsimulate(SDL_Renderer &renderer, SDL_Window &window){
             int x = fal.x*PALYASZELES/palya.Sx+PALYASZELES/palya.Sx/2;
             int y = fal.y*PALYAMAGAS/palya.Sy+PALYAMAGAS/palya.Sy/2;
             filledCircleRGBA(&renderer,
-                                 x,//palya.jarokelok[i].pozicio[step_cnt][0]*SZELES/PGX+SZELES/PGX/2,
-                                 y,//palya.jarokelok[i].pozicio[step_cnt][1]*MAGAS/PGY+MAGAS/PGY/2,
+                                 x,
+                                 y,
                                  PALYASZELES/palya.Sx/3,
                                  100,
                                  100,
@@ -277,21 +205,11 @@ void Menu::drawsimulate(SDL_Renderer &renderer, SDL_Window &window){
                                  255);
         }
     }
-
-    /*
-    for (int i=0; i<palya.Sx; i++){
-        for (int j=0; j<palya.Sy; j++){
-            for (int k=0; k<9; k++){
-                if (palya.mezok[floor(step_cntf)][i][j].iranyok[k/3][k%3])
-                    filledCircleRGBA(&renderer,PALYASZELES/palya.Sx/2+i*PALYASZELES/palya.Sx+(k/3-1)*PALYASZELES/palya.Sx/3,PALYAMAGAS/palya.Sy/2+j*PALYAMAGAS/palya.Sy+(k%3-1)*PALYAMAGAS/palya.Sx/3,palya.Sx/5,255,0,0,255);
-            }
-        }
-    }
-    //*/
     SDL_RenderPresent( &renderer );
 }
 
 void Menu::eventchoose(SDL_Event &ev){
+    // mágikus számok
     int h = 160, w = 160, spacebetween = 40;
     int yu = 55;
     int yd = 260;
@@ -367,7 +285,6 @@ void Menu::eventeditor(SDL_Event &ev){
 
 void Menu::eventsimulate(SDL_Event &ev){
 
-    //cout<<"alma"<<endl;
     if (ev.type==SDL_KEYUP){
         if (ev.key.keysym.sym==SDLK_a){
             a=false;
@@ -403,7 +320,6 @@ void Menu::eventsimulate(SDL_Event &ev){
         }
 
     }
-    //cout<<"balma"<<endl;
     if (ev.type == SDL_QUIT)
         exit(3);
 }
