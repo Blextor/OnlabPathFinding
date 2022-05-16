@@ -22,7 +22,7 @@ class Menu{
     bool a = false;
     bool b = false;
     bool c = false;
-    Pos mouse =Pos(0,0);
+    Pos mouse = Pos(0,0);
 
     void drawChangeSize(SDL_Renderer &renderer, SDL_Window &window);
     void drawEditor(SDL_Renderer &renderer, SDL_Window &window);
@@ -45,6 +45,7 @@ class Menu{
     void frameeditor();
     void framesimulate();
 
+    void add15x15Fal();
 
 public:
 

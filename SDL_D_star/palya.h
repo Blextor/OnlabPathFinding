@@ -96,7 +96,7 @@ public:
     Fal(){} // default
 
     Fal(int xv, int yv, bool kerekv=false, int start_timev=0){ // mikor a szerkesztőben lehelyezek egy teljes értékű falat
-        x=xv, y=yv, start_time=start_time, kerek=kerekv;
+        x=xv, y=yv, start_time=start_timev, kerek=kerekv;
     }
 
 };

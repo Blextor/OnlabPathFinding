@@ -180,29 +180,32 @@ void Menu::drawsimulate(SDL_Renderer &renderer, SDL_Window &window){
     std::list<Fal>::iterator it;
     for (it = palya.falak.begin(); it != palya.falak.end(); ++it){
         Fal fal = *it;
-        if (!fal.kerek){
-            int x = fal.x*PALYASZELES/palya.Sx+PALYASZELES/palya.Sx/2;
-            int y = fal.y*PALYAMAGAS/palya.Sy+PALYAMAGAS/palya.Sy/2;
-            boxRGBA(&renderer,
-                                 x-PALYASZELES/palya.Sx/3,
-                                 y-PALYAMAGAS/palya.Sy/3,
-                                 x+PALYASZELES/palya.Sx/3,
-                                 y+PALYAMAGAS/palya.Sy/3,
-                                 100,
-                                 100,
-                                 100,
-                                 255);
-        } else {
-            int x = fal.x*PALYASZELES/palya.Sx+PALYASZELES/palya.Sx/2;
-            int y = fal.y*PALYAMAGAS/palya.Sy+PALYAMAGAS/palya.Sy/2;
-            filledCircleRGBA(&renderer,
-                                 x,
-                                 y,
-                                 PALYASZELES/palya.Sx/3,
-                                 100,
-                                 100,
-                                 100,
-                                 255);
+        if (fal.start_time<=step_cntf && fal.end_time>=step_cntf ){
+            //cout<<"fal: "<<fal.start_time<<" "<<fal.end_time<<" "<<step_cntf<<endl;
+            if (!fal.kerek){
+                int x = fal.x*PALYASZELES/palya.Sx+PALYASZELES/palya.Sx/2;
+                int y = fal.y*PALYAMAGAS/palya.Sy+PALYAMAGAS/palya.Sy/2;
+                boxRGBA(&renderer,
+                                     x-PALYASZELES/palya.Sx/3,
+                                     y-PALYAMAGAS/palya.Sy/3,
+                                     x+PALYASZELES/palya.Sx/3,
+                                     y+PALYAMAGAS/palya.Sy/3,
+                                     100,
+                                     100,
+                                     100,
+                                     255);
+            } else {
+                int x = fal.x*PALYASZELES/palya.Sx+PALYASZELES/palya.Sx/2;
+                int y = fal.y*PALYAMAGAS/palya.Sy+PALYAMAGAS/palya.Sy/2;
+                filledCircleRGBA(&renderer,
+                                     x,
+                                     y,
+                                     PALYASZELES/palya.Sx/3,
+                                     100,
+                                     100,
+                                     100,
+                                     255);
+            }
         }
     }
     SDL_RenderPresent( &renderer );
@@ -236,6 +239,28 @@ void Menu::eventchoose(SDL_Event &ev){
 }
 
 void Menu::eventchangeSize(SDL_Event &ev){}
+
+
+void Menu::add15x15Fal(){
+    for (int i=1; i<14; i++){
+        for (int j=0; j<8; j++){
+            Fal fal(j,i,true);
+            for (int k=0; k<10; k++){
+                fal.start_time=(i%4)*7 + k * 28;
+                fal.end_time = fal.start_time+6;
+                palya.addFal(fal,false);
+            }
+        }
+        for (int j=8; j<15; j++){
+            Fal fal(j,i,true);
+            for (int k=0; k<10; k++){
+                fal.start_time=(3-(i%4))*7 + k * 28;
+                fal.end_time = fal.start_time+6;
+                palya.addFal(fal,false);
+            }
+        }
+    }
+}
 
 void Menu::eventeditor(SDL_Event &ev){
     if (ev.type == SDL_MOUSEBUTTONDOWN){
@@ -276,6 +301,8 @@ void Menu::eventeditor(SDL_Event &ev){
         if (ev.key.keysym.sym==SDLK_f){
             a=false;
             state = simulate;
+
+            add15x15Fal();
             palya.FalakLehelyezese(); // HELYTELEN
             palya.JarokelokLetetele(); // HELYTELEN
         }
