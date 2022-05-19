@@ -202,6 +202,23 @@ struct Haromszog{
     }
 };
 
+class Fal{
+    View* view;
+public:
+    vec2 a, b, c;
+
+    Fal(vec2 A, vec2 B, vec2 C, View* viewcs){
+        a=A; b=B; c=C; view=viewcs;
+    }
+
+    void draw(SDL_Renderer &renderer){
+        vec2 rela = view->getRelativePos(a);
+        vec2 relb = view->getRelativePos(b);
+        vec2 relc = view->getRelativePos(c);
+        filledTrigonRGBA(&renderer,rela.x,rela.y,relb.x,relb.y,relc.x,relc.y,45,45,45,255);
+    }
+};
+
 class Wall{
 
 public:
@@ -316,7 +333,7 @@ void draw(SDL_Window &window, SDL_Renderer &renderer, vector<Player> &players, v
 
 struct Data{
 
-    float csucsR = 4.f;
+    float csucsR = 2.f;
 
     int idx_cnt = 0;
 
@@ -338,6 +355,10 @@ struct Data{
     int falakCnt = 0;
     vector<Wall> falakV;
     int falakVCnt = 0;
+
+
+    vector<Fal> diszFalak;
+    bool csucsokDrawSwitch=false, diszfalakDrawSwitch=true, falakDrawSwitch=false, haromszogekDrawSwitch=false;
 
 
     Csucs failSafeCs = Csucs();
@@ -621,7 +642,7 @@ struct Data{
 
     void draw(SDL_Renderer &renderer, View view){
 
-        for (size_t i=0; i<haromszogek.size(); i++){
+        for (size_t i=0; i<haromszogek.size() && haromszogekDrawSwitch; i++){
             list<Haromszog>::iterator ptr = haromszogek.begin();
             advance(ptr,i);
             vec2 A = view.getRelativePos(ptr->A->pos);
@@ -640,19 +661,24 @@ struct Data{
 
 
         list<Wall>::iterator it = falak.begin();
-        for (size_t i=0; i<falak.size(); i++){
+        for (size_t i=0; i<falak.size() && falakDrawSwitch; i++){
             vec2 A = view.getRelativePos(it->cs1->pos), B = view.getRelativePos(it->cs2->pos);
             lineRGBA(&renderer,A.x,A.y,B.x,B.y,50,50,255,200);
             it++;
         }
 
-        for (size_t i=0; i<csucsok.size(); i++){
+        for (int i=0; i<diszFalak.size() && diszfalakDrawSwitch; i++){
+            diszFalak[i].draw(renderer);
+        }
+
+        for (size_t i=0; i<csucsok.size() && csucsokDrawSwitch; i++){
             vec2 RelPos = view.getRelativePos(getCsucsR(i).pos.x,getCsucsR(i).pos.y);
             if (view.inRender(RelPos,csucsR)){
                 filledCircleRGBA(&renderer,RelPos.x,RelPos.y,csucsR*view.zoom,255,150,34,255);
                 stringRGBA(&renderer,RelPos.x,RelPos.y,to_string(i).c_str(),255,255,255,255);
             }
         }
+
     }
 
     void createRandomTris(int cnt, View view){
@@ -661,6 +687,31 @@ struct Data{
         for (int i=0;i<cnt; i++){
             for (int j=0; j<3;j++){
                 csucsok.push_back(mid+vec2(rand()%SZELES,rand()%MAGAS));
+            }
+        }
+    }
+
+
+    void createFal(vec2 A, vec2 B, vec2 C, View* view){
+        Fal temp(A,B,C,view);
+        diszFalak.push_back(temp);
+    }
+
+    void loadFileFalak(string file, View* view){
+        ifstream F; F.open(file);
+        if (F.fail())
+            return;
+        int cnt = 0;
+        vec2 tempCsucsok[3];
+        while (!F.eof()){
+            float x, y;
+            F>>x>>y;
+            tempCsucsok[cnt] = vec2(x,y);
+            cnt++;
+            if (cnt==3){
+                Fal temp(tempCsucsok[0],tempCsucsok[1],tempCsucsok[2],view);
+                diszFalak.push_back(temp);
+                cnt=0;
             }
         }
     }
@@ -676,12 +727,14 @@ struct CreateTri{
     View* view;
     Data* data;
 
-    int radius = 4;
+    int radius = 2;
 
     CreateTri(View* v, Data* d){view=v; data=d;}
 
     void loadFile(string file){
         ifstream F; F.open(file);
+        if (F.fail())
+            return;
         state = 0;
         while (!F.eof()){
             float x, y;
@@ -692,7 +745,7 @@ struct CreateTri{
 
                 bool ok = true;
                 for (int i=0; i<state; i++){
-                    if ((csucsok[i]-csucsok[state]).length()<8.f){
+                    if ((csucsok[i]-csucsok[state]).length()<radius/2.f){
                         ok = false;
                     }
                 }
@@ -737,7 +790,7 @@ struct CreateTri{
 
                         bool ok = true;
                         for (int i=0; i<state; i++){
-                            if ((csucsok[i]-csucsok[state]).length()<8.f){
+                            if ((csucsok[i]-csucsok[state]).length()<radius*2.f){
                                 ok = false;
                             }
                         }
@@ -814,6 +867,15 @@ struct UtPos{
                 ///cout<<"!FIRST "<<cs.id<<" "<<utp.csucs.id<<endl;
                 eddigiCsucsok.push_back(utp.csucs);
 
+            }
+        }
+    }
+
+    void removeNotValidId(){
+        for (int i=0; i<eddigiCsucsok.size(); i++){
+            if (eddigiCsucsok[i].id==-1){
+                eddigiCsucsok.erase(eddigiCsucsok.begin()+i);
+                i--;
             }
         }
     }
@@ -896,7 +958,14 @@ float PontVonalTavolsag(vec2 P, vec2 A, vec2 B){
     float a = (x*x - y*y + z*z) / (2.f*z);
 
     vec2 ret = (A*(z-a)+B*a)/z;
-    return (ret-P).length();
+    float epsz = 0.001f;
+    if ((ret-A).length()+(ret-B).length()<(A-B).length()+epsz){
+        return (ret-P).length();
+    } else {
+        return min((ret-A).length(),(ret-B).length());
+    }
+
+    //return (ret-P).length();
 }
 
 long int metszinemcnt = 0;
@@ -950,7 +1019,6 @@ bool MetsziNemCsakErenti(vec2 *A1, vec2 *A2, vec2 *B1, vec2 *B2, Data *data, vec
     }
     return false;
 }
-
 
 vec2 HolMetszi(vec2 A1, vec2 A2, vec2 B1, vec2 B2){
     // Line AB represented as a1x + b1y = c1
@@ -1025,6 +1093,14 @@ struct UtvonalKereso{
                 B = min(B,PontVonalTavolsag(input.csucs.pos,((*it).cs1->pos),((*it).cs2->pos)));
                 it++;
             }
+            /*
+            vec2 C = startP;
+            vec2 D = input.csucs.pos;
+            vec2 Depsz = ((C-D).normalize()*0.1f+D), Cepsz = ((D-C).normalize()*0.1f+C);
+            bool Cok = (data->getHaromszogIDFromPont(&Cepsz) != -1);
+            bool Dok = (data->getHaromszogIDFromPont(&Depsz) != -1);
+            */
+
             float epsz = 0.01f;
             if (A < epsz && B < epsz){
                 //cout<<"palacsinta"<<endl;
@@ -1037,7 +1113,7 @@ struct UtvonalKereso{
 
         }
         else {
-                //cout<<"YEY"<<endl;
+            ///cout<<"YEY"<<endl;
             // közös két csúcs, de a másik két oldal közül valamelyiket elmetszi?
             vector<Csucs> utvonal; utvonal.resize(1+1+input.eddigiCsucsok.size());
             utvonal[0]=Csucs(startP, false);
@@ -1068,7 +1144,7 @@ struct UtvonalKereso{
 
             ///*  // TODO
             bool A = false;
-            //cout<<"YEY"<<endl;
+            ///cout<<"YEY"<<endl;
 
             for (size_t i=0; i<utvonal.size()-1; i++){ // elejétől nézve megnézem, hogy mettől tudok egyenesen menni a végcsúcsba
                 //list<Wall>::iterator it = data->falak.begin();
@@ -1076,7 +1152,8 @@ struct UtvonalKereso{
                 float Atav = 1000.f, Btav = 1000.f;
                 bool B = false;
 
-                for (int j=0; j<data->falakCnt; j++){
+                ///cout<<"Csucs id: "<<utvonal[i].id<<" "<<data->falakV.size()<<endl;
+                for (int j=0; j<data->falakV.size(); j++){
                         //cout<<"HM";
                     /*
                     if (MetsziNemCsakErenti(&utvonal[utvonal.size()-1].pos,&utvonal[i].pos,&((*it).cs1->pos),&((*it).cs2->pos),data,hol) ) // MAJD FELADAT
@@ -1089,11 +1166,18 @@ struct UtvonalKereso{
                     it++;
                     */
                     if (MetsziNemCsakErenti(&utvonal[utvonal.size()-1].pos,&utvonal[i].pos,&(data->falakV[j].cs1->pos),&(data->falakV[j].cs2->pos),data,hol) ) { // MAJD FELADAT{
-                        //cout<<"TTT"<<endl;
+                        ///cout<<"TTT"<<endl;
                         break;
                     }
+                    //cout<<Atav<<" "<<Btav<<endl;
                     Atav = min(Atav,PontVonalTavolsag(startP,(data->falakV[j].cs1->pos),(data->falakV[j].cs2->pos)));
+                    ///if (min(Btav,PontVonalTavolsag(input.csucs.pos,(data->falakV[j].cs1->pos),(data->falakV[j].cs2->pos)))<Btav){
+                        ///cout<<input.csucs.id<<" "<<input.csucs.pos.x<<" "<<input.csucs.pos.y<<" "<<data->falakV[j].cs1->id<<" "<<data->falakV[j].cs2->id<<" ";
+                        ///cout<<min(Btav,PontVonalTavolsag(input.csucs.pos,(data->falakV[j].cs1->pos),(data->falakV[j].cs2->pos)))<<endl;
+                    ///}
                     Btav = min(Btav,PontVonalTavolsag(input.csucs.pos,(data->falakV[j].cs1->pos),(data->falakV[j].cs2->pos)));
+
+                    //cout<<Atav<<" "<<Btav<<endl;
                     if (!A && (utvonal[utvonal.size()-1].id==data->falakV[j].cs1->id || utvonal[utvonal.size()-1].id==data->falakV[j].cs2->id))
                         A=true;
                     //cout<<"B"<<endl;
@@ -1101,10 +1185,18 @@ struct UtvonalKereso{
                         B=true;
 
                     if (j==data->falak.size()-1){
-                        //cout<<"VVV"<<endl;
+                        ///cout<<"VVV"<<endl;
                         float epsz = 0.01f;
-                        if (Atav < epsz && Btav < epsz){
-                            //cout<<"palacsinta2"<<endl;
+
+                        vec2 C = utvonal[utvonal.size()-1].pos;
+                        vec2 D = utvonal[i].pos;
+                        vec2 Depsz = ((C-D).normalize()*0.1f+D), Cepsz = ((D-C).normalize()*0.1f+C);
+                        bool Cok = (data->getHaromszogIDFromPont(&Cepsz) != -1);
+                        bool Dok = (data->getHaromszogIDFromPont(&Depsz) != -1);
+
+                        if (!Cok || !Dok){
+                        //if (Atav < epsz && Btav < epsz ){
+                            ///cout<<"palacsinta2"<<endl;
                             break;
 
                         }
@@ -1113,7 +1205,7 @@ struct UtvonalKereso{
                                 break;
                         }
 
-                        //cout<<"ZZZ"<<endl;
+                        ///cout<<"ZZZ"<<endl;
                         vector<Csucs> temp; temp.resize(i+2);
                         //temp[0]=utvonal[0];
                         for (size_t k=0; k<=i; k++)
@@ -1149,7 +1241,8 @@ struct UtvonalKereso{
 
         //Haromszog h1 = data->getHaromszogR(HIDstart);
         bool Tdebug = false;
-        bool Tdebug2 = true;
+        bool Tdebug2 = false;
+        bool Tdebug3 = false;
 
         set<int> celIDk, startIDk;
         startIDk.insert(data->getHaromszogR(HIDstart).A->id); startIDk.insert(data->getHaromszogR(HIDstart).B->id); startIDk.insert(data->getHaromszogR(HIDstart).C->id);
@@ -1181,7 +1274,7 @@ struct UtvonalKereso{
             if (Tdebug) cout<<"csucs ossz "<<temp.ossz<<endl;
             csucsok.erase(csucsok.begin());     // törlöm is
             if (Tdebug2){
-                cout<<"Csucs ID: "<<temp.csucs.id<<" "<<data->csucsok.size()<<endl;
+                cout<<"Csucs ID: "<<temp.csucs.id<<" "<<temp.becsult<<" "<<temp.eddigMegtett<<" "<<temp.elozoMegtett<<" "<<temp.ossz<<endl;
                 for (size_t i=0; i<temp.eddigiCsucsok.size(); i++)
                     cout<<temp.eddigiCsucsok[i].id<<" ";
                 cout<<endl;
@@ -1201,6 +1294,7 @@ struct UtvonalKereso{
                 temp.eddigiCsucsok.push_back(temp.csucs);
                 temp.csucs=Csucs(RealEnd,false);  // TODO
                 temp = UtvonalKeresesVagas(temp,RealStart,RealEnd); //re
+                temp.removeNotValidId();
 
                 if (Tdebug2){
                     for (size_t i=0; i<temp.eddigiCsucsok.size(); i++)
@@ -1266,6 +1360,9 @@ struct UtvonalKereso{
             ///cout<<&((data->getCsucsP(temp.csucs.id))->haromszogID)<<" haromszogID Size: "<<haromszogek.size()<<endl;
             for (size_t i=0; i<haromszogek.size(); i++){ // ezeken zongorázok végig
                 Haromszog tempH = data->getHaromszogR(haromszogek[i]);  // lekérem a konkrét háromszöget
+
+                ///cout<<"   haromszog ID: "<<tempH.id<<", csucsok: "<<tempH.A->id<<" "<<tempH.B->id<<" "<<tempH.C->id<<endl;
+
                 //cout<<"tempH IDA: "<<tempH.A->id<<endl;
                 //3-szor megejtem ez, a háromszög 3 csúcsára egyszer-egyszer
                 // létrehozom a lehetséges új köztes uticélt, hogy melyik csúcsról is lenne szó, mennyi az addig megtett út, a becsült hátralévő és az előző megálló
@@ -1275,8 +1372,19 @@ struct UtvonalKereso{
                 //ehhez kell egy kis segítség is
 
                 if (startIDk.find(tempH.A->id)==startIDk.end()){
-                    t =clock();
+                    t=clock();
                     cs1 = UtvonalKeresesVagas(cs1,RealStart,RealEnd);
+                    cs1.removeNotValidId();
+
+                    /*
+                    //cout<<"kifejtes: Csucs ID: "<<cs1.csucs.id<<", "<<cs1.
+                    cout<<"      kifejtes: Csucs ID: "<<cs1.csucs.id<<" "<<cs1.becsult<<" "<<cs1.eddigMegtett<<" "<<cs1.elozoMegtett<<" "<<cs1.ossz<<endl;
+                    cout<<"         ";
+                    for (size_t i=0; i<cs1.eddigiCsucsok.size(); i++)
+                        cout<<cs1.eddigiCsucsok[i].id<<" ";
+                    cout<<endl;
+                    */
+
                     vagas += clock()-t;
                     UtPosSeged segA(tempH.A->id,cs1.ossz);
                     // ugyanis az ID-kat nem akarom felfedezni újra, csak ha találtam jobb megközelítést, ahhoz a csúcshoz
@@ -1307,6 +1415,16 @@ struct UtvonalKereso{
                 if (startIDk.find(tempH.B->id)==startIDk.end()){
                     t =clock();
                     cs2 = UtvonalKeresesVagas(cs2,RealStart,RealEnd);
+                    cs2.removeNotValidId();
+
+                    /*
+                    cout<<"      kifejtes: Csucs ID: "<<cs2.csucs.id<<" "<<cs2.becsult<<" "<<cs2.eddigMegtett<<" "<<cs2.elozoMegtett<<" "<<cs2.ossz<<endl;
+                    cout<<"         ";
+                    for (size_t i=0; i<cs2.eddigiCsucsok.size(); i++)
+                        cout<<cs2.eddigiCsucsok[i].id<<" ";
+                    cout<<endl;
+                    */
+
                     vagas += clock()-t;
                     UtPosSeged segB(tempH.B->id,cs2.ossz);
                     if (visitedCsucsId.find(segB)!=visitedCsucsId.end()){
@@ -1329,6 +1447,16 @@ struct UtvonalKereso{
                 if (startIDk.find(tempH.C->id)==startIDk.end()){
                     t =clock();
                     cs3 = UtvonalKeresesVagas(cs3,RealStart,RealEnd);
+                    cs3.removeNotValidId();
+
+                    /*
+                    cout<<"      kifejtes: Csucs ID: "<<cs3.csucs.id<<" "<<cs3.becsult<<" "<<cs3.eddigMegtett<<" "<<cs3.elozoMegtett<<" "<<cs3.ossz<<endl;
+                    cout<<"         ";
+                    for (size_t i=0; i<cs3.eddigiCsucsok.size(); i++)
+                        cout<<cs3.eddigiCsucsok[i].id<<" ";
+                    cout<<endl;
+                    */
+
                     vagas += clock()-t;
                     UtPosSeged segC(tempH.C->id,cs3.ossz);
                     if (visitedCsucsId.find(segC)!=visitedCsucsId.end()){
@@ -1396,9 +1524,6 @@ class Player2{
     vector<UtvonalElem> utvonal;
     float utvonalHossz = 0;
 
-    bool stop=true;
-
-
 
     //int aktualisUtvonalCel = 0;
 
@@ -1407,6 +1532,10 @@ class Player2{
     float speed, radius, mass;
 
 public:
+
+    static bool stop;
+
+    float nextUtPosDis = 0, upcomingUtPosDis = 0;
 
     vec2 pos;
 
@@ -1441,10 +1570,8 @@ public:
         }
 
         for (int i=0; i<players.size(); i++){
-            if (id!=-1 && i!=id){
-                if ((players[i].pos-pos).length()<radius+players[i].radius){
-                    preVelo+=(pos-players[i].pos).normalize()*(radius+players[i].radius - (players[i].pos-pos).length())*1.0f/**(radius+2.f)*/*dt*speed;
-                }
+            if ((players[i].pos-pos).length()<radius+players[i].radius){
+                preVelo+=(pos-players[i].pos).normalize()*(radius+players[i].radius - (players[i].pos-pos).length())*1.0f/**(radius+2.f)*/*dt*speed;
             }
         }
 
@@ -1502,21 +1629,21 @@ public:
         vec2 ret;
         if (!ok && temp!= vec2(-1369,-1369)){
             ret = realProjection(pos,haromszog.B->pos,haromszog.A->pos);
-            cout<<"a"<<endl;
+            ///cout<<"a"<<endl;  // Fontos lehet az egyhelyben ragadásnál
             ok=true;
         }
 
         temp = HolMetszi(pos,S,haromszog.C->pos,haromszog.A->pos);
         if (!ok && temp!= vec2(-1369,-1369)){
             ret = realProjection(pos,haromszog.C->pos,haromszog.A->pos);
-            cout<<"b"<<endl;
+            ///cout<<"b"<<endl;  // Fontos lehet
             ok=true;
         }
 
         temp = HolMetszi(pos,S,haromszog.B->pos,haromszog.C->pos);
         if (!ok && temp!= vec2(-1369,-1369)){
             ret = realProjection(pos,haromszog.B->pos,haromszog.C->pos);
-            cout<<"c"<<endl;
+            ///cout<<"c"<<endl;  // Fontos lehet
             ok=true;
         }
         if (!ok){
@@ -1590,6 +1717,8 @@ public:
     bool baj = false;
 
     void simulate(float dt){
+        if (stop)
+            return;
         int harom = data->getHaromszogIDFromPont(&pos);
         if (utvonal.size()>0 && harom==-1 && !baj){
             baj=true;
@@ -1646,20 +1775,48 @@ public:
             utvonal[0].posStart = pos;
             utvonalHossz += (utvonal[0].posStart-utvonal[0].posEnd).length();
 
-                if (!vanUtvonalVege || utvonal.size()>1){
-                    if ((utvonal[0].posEnd-pos).length()<radius){
-                        //0++;
-                        utvonalHossz -= (utvonal[0].posStart-utvonal[0].posEnd).length();
-                        utvonal.erase(utvonal.begin());
-
+            bool better = false, betterHelp1 = false;
+            if (utvonal.size()>1){
+                if (upcomingUtPosDis!=-1) {
+                    if (upcomingUtPosDis>(utvonal[1].posEnd-pos).length()){
+                        betterHelp1 = true;
                     }
+                    upcomingUtPosDis = (utvonal[1].posEnd-pos).length();
+                }
+                upcomingUtPosDis = (utvonal[1].posEnd-pos).length();
+            }
+
+
+            if (nextUtPosDis!=-1){
+                if (nextUtPosDis<(utvonal[0].posEnd-pos).length() && betterHelp1){
+                    utvonalHossz-=(utvonal[0].posEnd-utvonal[0].posEnd).length();
+                    utvonal.erase(utvonal.begin());
+                    if (utvonal.size()>1){
+                        nextUtPosDis=(utvonal[0].posEnd-pos).length();
+                        upcomingUtPosDis=(utvonal[1].posEnd-pos).length();
+                    }
+                    utvonalkereses(cel);
+                    cout<<"JUPPI"<<endl;
+                    return;
+                }
+            }
+            nextUtPosDis = (utvonal[0].posEnd-pos).length();
+
+
+            if (!vanUtvonalVege || utvonal.size()>1){
+                if ((utvonal[0].posEnd-pos).length()<radius){
+                    //0++;
+                    utvonalHossz -= (utvonal[0].posStart-utvonal[0].posEnd).length();
+                    utvonal.erase(utvonal.begin());
+
+                }
             }
         }
     }
 
     void utvonalkereses(vec2 realpos){
         bool Tdebug = true;
-        if (Tdebug) cout<<"Start"<<endl;
+        if (Tdebug) cout<<"Start from: ("<<pos.x<<", "<<pos.y<<"), to: ("<<realpos.x<<", "<<realpos.y<<")"<<endl;
         utvonal = gps->UtvonalKereses(pos,realpos); // így már jó a felelősség
 //        aktualisUtvonalCel=0;
         if (Tdebug) cout<<"Bef"<<endl;
@@ -1675,6 +1832,7 @@ public:
             else
                 cout<<"Nincs utvonal."<<endl;
         }
+        upcomingUtPosDis = -1, nextUtPosDis = -1;
     }
 
     void utvKerTest(int cnt){
@@ -1688,16 +1846,13 @@ public:
 
     void getEvent(SDL_Event &ev, int player_team){
         if (ev.type==SDL_KEYDOWN){
-            if (ev.key.keysym.sym == SDLK_1){
-                stop=!stop;
-            }
             if (ev.key.keysym.sym == SDLK_k){
                 vanUtvonalVege=!vanUtvonalVege;
             }
         }
         if (ev.type==SDL_MOUSEBUTTONDOWN){
             //cout<<"HAPCI "<<(int)ev.button.button<<endl;
-            if (ev.button.button==3 && player_team == team){
+            if (ev.button.button==3 && (player_team == team || player_team == 0)){
                 vec2 epos(ev.button.x,ev.button.y);
                 vec2 Realepos = view->getRealPos(epos);
                 cel = Realepos;
@@ -1722,6 +1877,8 @@ public:
     }
 
 };
+
+bool Player2::stop = false;
 
 void jatek( SDL_Window &window, SDL_Renderer &renderer){
 
@@ -1752,21 +1909,23 @@ void jatek( SDL_Window &window, SDL_Renderer &renderer){
 
     //Player2 player(&data,&view,&gps);
 
-    int player_cnt = 8;
-    vector<Player2> players; players.resize(player_cnt);
-    for (int i=0; i<player_cnt; i++){
+    //int player_cnt = 8;
+    vector<Player2> players;
+    //players.resize(player_cnt);
+    /*for (int i=0; i<player_cnt; i++){
         players[i]=Player2(&data,&view,&gps);
         players[i].pos.x+=5.f*i;
         players[i].id=i;
-    }
+    }*/
 
-    players[7].team=0;
+    //players[7].team=0;
 
 
     clock_t dt_timer = clock();
     clock_t viewEvT=0, frameResetT=0, drawT=0, crTriDrawT=0, dataDrawT=0, RenderPresentT=0;
 
-    bool w=false,a=false,s=false,d=false,z=false,u=false;// o=false;
+    bool w=false,a=false,s=false,d=false,q=false,e=false;// o=false;
+    bool p=false;
     int player_team = 0;
     //bool up=false, down=false, right=false, left=false;
 
@@ -1783,22 +1942,25 @@ void jatek( SDL_Window &window, SDL_Renderer &renderer){
         if (SDL_PollEvent(&ev)){
             if (ev.type == SDL_QUIT)
                 exit(0);
-            crTri.getEvent(ev,view,data);
+            if (!p)
+                crTri.getEvent(ev,view,data);
 
             //player.getEvent(ev);
 
-            for (int i=0; i<player_cnt; i++){
+            for (int i=0; i<players.size(); i++){
                 players[i].getEvent(ev,player_team);
             }
 
-            /*
-            if (ev.type==SDL_MOUSEBUTTONDOWN){
+
+
+            if (ev.type==SDL_MOUSEBUTTONDOWN && p && ev.button.button==1){
                 int x = ev.button.x;
                 int y = ev.button.y;
                 vec2 RealPos = view.getRealPos(x,y);
-                players.push_back(Player(RealPos.x,RealPos.y,0,0,1,5));
+                if (data.getHaromszogIDFromPont(&RealPos)!=-1)
+                    players.push_back(Player2(&data,&view,&gps,RealPos));
             }
-            */
+
 
             if (ev.type==SDL_KEYDOWN){
                 if (ev.key.keysym.sym == SDLK_w){
@@ -1813,15 +1975,46 @@ void jatek( SDL_Window &window, SDL_Renderer &renderer){
                 if (ev.key.keysym.sym == SDLK_d){
                     d=true;
                 }
-                if (ev.key.keysym.sym == SDLK_u){
-                    u=true;
+                if (ev.key.keysym.sym == SDLK_e){
+                    e=true;
+                }
+                if (ev.key.keysym.sym == SDLK_q){
+                    q=true;
                 }
                 if (ev.key.keysym.sym == SDLK_z){
-                    z=true;
+                        cout<<"alma"<<endl;
+                    UtPos temp;
+                    //temp.eddigiCsucsok.push_back(data.csucsokV[22]);
+                    temp.eddigiCsucsok.push_back(data.csucsokV[10]);
+                    temp.eddigiCsucsok.push_back(data.csucsokV[6]);
+                    temp.csucs = data.csucsokV[4];
+                    data.frissitFalakV();
+                    UtPos temp2 = gps.UtvonalKeresesVagas(temp,vec2(5,35),vec2(-30,75));
+                    cout<<"kifejtes: Csucs ID: "<<temp2.csucs.id<<" "<<temp2.becsult<<" "<<temp2.eddigMegtett<<" "<<temp2.elozoMegtett<<" "<<temp2.ossz<<endl;
+                    cout<<"   ";
+                    for (size_t i=0; i<temp2.eddigiCsucsok.size(); i++)
+                        cout<<temp2.eddigiCsucsok[i].id<<" ";
+                    cout<<endl;
+
+                }
+                if (ev.key.keysym.sym == SDLK_1){
+                    Player2::stop=!Player2::stop;
                 }
                 if (ev.key.keysym.sym == SDLK_t){
                     player_team++;
                     player_team = player_team%2;
+                }
+                if (ev.key.keysym.sym == SDLK_p){
+                    p=!p;
+                }
+                if (ev.key.keysym.sym == SDLK_i){
+                    float x, y;
+                    cout<<"Uj jatekos letrehozasa"<<endl;
+                    cout<<"Pozicioja (x,y): ";
+                    cin>>x>>y;
+                    vec2 RealPos(x,y); //= view.getRealPos(x,y);
+                    if (data.getHaromszogIDFromPont(&RealPos)!=-1)
+                        players.push_back(Player2(&data,&view,&gps,RealPos));
                 }
                 if (ev.key.keysym.sym == SDLK_c){
                     //z=true;
@@ -1829,6 +2022,9 @@ void jatek( SDL_Window &window, SDL_Renderer &renderer){
                     cout<<"Betolteni kívant fajl: ";
                     cin>>fileF;
                     crTri.loadFile(fileF);
+                    fileF+="Walls";
+                    data.loadFileFalak(fileF,&view);
+                    crTri.state=-1;
                 }
                 if (ev.key.keysym.sym == SDLK_v){
                     string fileF;
@@ -1935,14 +2131,14 @@ void jatek( SDL_Window &window, SDL_Renderer &renderer){
                 if (ev.key.keysym.sym == SDLK_d){
                     d=false;
                 }
-                if (ev.key.keysym.sym == SDLK_u){
-                    u=false;
+                if (ev.key.keysym.sym == SDLK_e){
+                    e=false;
                 }
-                if (ev.key.keysym.sym == SDLK_z){
-                    z=false;
+                if (ev.key.keysym.sym == SDLK_q){
+                    q=false;
                 }
-                if (ev.key.keysym.sym == SDLK_o){
-                    //o=false;
+                if (ev.key.keysym.sym == SDLK_p){
+
                 }
                 /*
                 if (ev.key.keysym.sym == SDLK_UP){
@@ -1970,18 +2166,18 @@ void jatek( SDL_Window &window, SDL_Renderer &renderer){
             dt/=1000.f;
             dt_timer=clock();
             //player.simulate(dt,players);
-            for (int i=0; i<player_cnt; i++)
+            for (int i=0; i<players.size(); i++)
                 players[i].preSimulate(dt,players);
-            for (int i=0; i<player_cnt; i++)
+            for (int i=0; i<players.size(); i++)
                 players[i].simulate(dt);
 
             clock_t tFrame = clock();
-            view.KeysDown(w,a,s,d,u,z);
+            view.KeysDown(w,a,s,d,e,q);
 
             viewEvT+=clock()-tFrame;
             tFrame=clock();
 
-            SDL_SetRenderDrawColor(&renderer,100,100,100,255);
+            SDL_SetRenderDrawColor(&renderer,255,128,10,255);
             SDL_RenderClear(&renderer);
             frameResetT+=clock()-tFrame;
             tFrame=clock();
@@ -1998,7 +2194,7 @@ void jatek( SDL_Window &window, SDL_Renderer &renderer){
             tFrame=clock();
 
             //player.draw(renderer);
-            for (int i=0; i<player_cnt; i++){
+            for (int i=0; i<players.size(); i++){
                 players[i].draw(renderer);
             }
             drawT+=clock()-tFrame;
