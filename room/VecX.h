@@ -49,11 +49,14 @@ public:
 	}
 
     bool operator!=(vec2 v) {
-		return !(x == v.x && y == v.y);
+        return !operator==(v);
+		//return !(x == v.x && y == v.y);
 	}
 
     bool operator==(vec2 v) {
-		return (x == v.x && y == v.y);
+        float epsz = 0.00001f;
+        return (abs(x-v.x)<epsz && abs(y-v.y)<epsz);
+		//return (x == v.x && y == v.y);
 	}
 
 	vec2 operator+(double s) {

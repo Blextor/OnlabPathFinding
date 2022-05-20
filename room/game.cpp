@@ -733,8 +733,10 @@ struct CreateTri{
 
     void loadFile(string file){
         ifstream F; F.open(file);
-        if (F.fail())
+        if (F.fail()){
+                cout<<"fajl betoltes hiba"<<endl;
             return;
+        }
         state = 0;
         while (!F.eof()){
             float x, y;
@@ -988,9 +990,10 @@ bool MetsziNemCsakErenti(vec2 *A1, vec2 *A2, vec2 *B1, vec2 *B2, Data *data, vec
         // The lines are parallel. This is simplified
         // by returning a pair of FLT_MAX
         //return make_pair(FLT_MAX, FLT_MAX);
-        double x = (b2*c1 - b1*c2)/determinant;
-        double y = (a1*c2 - a2*c1)/determinant;
-        hol = vec2(x,y);
+        //cout<<"MI A NULLA OSZTAS EREDMENYE"<<endl;
+        //double x = (b2*c1 - b1*c2)/determinant;
+        //double y = (a1*c2 - a2*c1)/determinant;
+        //hol = vec2(x,y);
         return false;
     }
     else
@@ -1000,8 +1003,13 @@ bool MetsziNemCsakErenti(vec2 *A1, vec2 *A2, vec2 *B1, vec2 *B2, Data *data, vec
         hol = vec2(x,y);
         if (min(A1->x,A2->x) <= x && x <= max(A1->x,A2->x)  &&  min(A1->y,A2->y) <= y && y <= max(A1->y,A2->y)){
             if (min(B1->x,B2->x) <= x && x <= max(B1->x,B2->x)  &&  min(B1->y,B2->y) <= y && y <= max(B1->y,B2->y)){
-                if (!(*(A1)==vec2(x,y)) && !(*A2==vec2(x,y)))
+                if (((*A1)!=vec2(x,y)) && ((*A2)!=vec2(x,y))){
+                    //if ((*A2))
+                    //cout<<"hol "<<(double)x<<" "<<(double)y<<", A1: "<<(*A1).x<<" "<<(*A1).y<<", A2: "<<(*A2).x<<" "<<(*A2).y<<" "<<true<<((*A1)!=vec2(x,y))<<((*A2)!=vec2(x,y))<<((*A2)!=vec2(15,20))<<endl;
+                    //bool ok = false;
+                    //for (int i=0; i<data->)
                     return true;
+                }
                 /* Csúcsok lekezelésére van ez itt, de már van külön megoldás rá
                 } else {
                     vec2 kerdeses = vec2(0,0);
@@ -1145,6 +1153,8 @@ struct UtvonalKereso{
             ///*  // TODO
             bool A = false;
             ///cout<<"YEY"<<endl;
+            //cout<<utvonal[utvonal.size()-1].id
+            ///cout<<"Kifejtett Csucs id: "<<utvonal[utvonal.size()-1].id<<" "<<utvonal[utvonal.size()-1].pos.x<<" "<<utvonal[utvonal.size()-1].pos.y<<endl;
 
             for (size_t i=0; i<utvonal.size()-1; i++){ // elejétől nézve megnézem, hogy mettől tudok egyenesen menni a végcsúcsba
                 //list<Wall>::iterator it = data->falak.begin();
@@ -1152,7 +1162,7 @@ struct UtvonalKereso{
                 float Atav = 1000.f, Btav = 1000.f;
                 bool B = false;
 
-                ///cout<<"Csucs id: "<<utvonal[i].id<<" "<<data->falakV.size()<<endl;
+                ///cout<<"   Csucs id: "<<utvonal[i].id<<" "<<utvonal[i].pos.x<<" "<<utvonal[i].pos.y<<endl; //<<data->falakV.size()<<endl;
                 for (int j=0; j<data->falakV.size(); j++){
                         //cout<<"HM";
                     /*
@@ -1201,8 +1211,10 @@ struct UtvonalKereso{
 
                         }
                         if (A&&B){
-                            if (FalonKivulCsucsokKozt(&utvonal[utvonal.size()-1],&utvonal[i],data))
+                            if (FalonKivulCsucsokKozt(&utvonal[utvonal.size()-1],&utvonal[i],data)){
+                                    cout<<"Talan"<<endl;
                                 break;
+                            }
                         }
 
                         ///cout<<"ZZZ"<<endl;
@@ -1981,15 +1993,20 @@ void jatek( SDL_Window &window, SDL_Renderer &renderer){
                 if (ev.key.keysym.sym == SDLK_q){
                     q=true;
                 }
+                if (ev.key.keysym.sym == SDLK_u){
+                    if (players.size()>0){
+                        players[0].utvonalkereses(vec2(27.5332, -19.2027));
+                    }
+                }
                 if (ev.key.keysym.sym == SDLK_z){
                         cout<<"alma"<<endl;
                     UtPos temp;
-                    //temp.eddigiCsucsok.push_back(data.csucsokV[22]);
-                    temp.eddigiCsucsok.push_back(data.csucsokV[10]);
-                    temp.eddigiCsucsok.push_back(data.csucsokV[6]);
-                    temp.csucs = data.csucsokV[4];
+                    temp.eddigiCsucsok.push_back(data.csucsokV[25]);
+                    temp.eddigiCsucsok.push_back(data.csucsokV[27]);
+                    temp.eddigiCsucsok.push_back(data.csucsokV[41]);
+                    temp.csucs = data.csucsokV[46];
                     data.frissitFalakV();
-                    UtPos temp2 = gps.UtvonalKeresesVagas(temp,vec2(5,35),vec2(-30,75));
+                    UtPos temp2 = gps.UtvonalKeresesVagas(temp,vec2(5,35),vec2(27.5332, -19.2027));
                     cout<<"kifejtes: Csucs ID: "<<temp2.csucs.id<<" "<<temp2.becsult<<" "<<temp2.eddigMegtett<<" "<<temp2.elozoMegtett<<" "<<temp2.ossz<<endl;
                     cout<<"   ";
                     for (size_t i=0; i<temp2.eddigiCsucsok.size(); i++)
@@ -1999,6 +2016,11 @@ void jatek( SDL_Window &window, SDL_Renderer &renderer){
                 }
                 if (ev.key.keysym.sym == SDLK_1){
                     Player2::stop=!Player2::stop;
+                }
+                if (ev.key.keysym.sym == SDLK_g){
+                    data.csucsokDrawSwitch= !data.csucsokDrawSwitch;
+                    data.falakDrawSwitch= !data.falakDrawSwitch;
+                    data.haromszogekDrawSwitch= !data.haromszogekDrawSwitch;
                 }
                 if (ev.key.keysym.sym == SDLK_t){
                     player_team++;
@@ -2177,7 +2199,7 @@ void jatek( SDL_Window &window, SDL_Renderer &renderer){
             viewEvT+=clock()-tFrame;
             tFrame=clock();
 
-            SDL_SetRenderDrawColor(&renderer,255,128,10,255);
+            SDL_SetRenderDrawColor(&renderer,150,64,12,255);
             SDL_RenderClear(&renderer);
             frameResetT+=clock()-tFrame;
             tFrame=clock();
