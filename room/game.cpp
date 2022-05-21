@@ -1630,8 +1630,8 @@ public:
 
 
     Player2(Data *Ddata, View *View, UtvonalKereso *GPS,
-             vec2 Pos = vec2(0,0), int id=-1, float Speed = 100.f, float Radius = 5.f, float Mass = 1.f, vec2 Velo = vec2(0,0)){
-        data=Ddata; view=View; gps=GPS;
+             vec2 Pos = vec2(0,0), int player_team=0, float Speed = 100.f, float Radius = 5.f, float Mass = 1.f, vec2 Velo = vec2(0,0)){
+        data=Ddata; view=View; gps=GPS; team = player_team;
         pos=Pos; speed=Speed; radius=Radius; mass=Mass; velo=Velo;
     }
 
@@ -1650,7 +1650,12 @@ public:
 
         for (int i=0; i<players.size(); i++){
             if ((players[i].pos-pos).length()<radius+players[i].radius){
-                preVelo+=(pos-players[i].pos).normalize()*(radius+players[i].radius - (players[i].pos-pos).length())*1.0f/**(radius+2.f)*/*dt*speed;
+                if (players[i].team>=team) {
+                    preVelo+=(pos-players[i].pos).normalize()*(radius+players[i].radius - (players[i].pos-pos).length())*1.0f/**(radius+2.f)*/*dt*speed*2.5f;
+                } else {
+                    cout<<"ALMA"<<endl;
+                    preVelo+=(pos-players[i].pos).normalize()*(radius+players[i].radius - (players[i].pos-pos).length())*1.0f/**(radius+2.f)*/*dt*speed/2.0f;
+                }
             }
         }
 
@@ -1908,11 +1913,6 @@ public:
         vec2 nowpos = pos;
 
         pos+=velo*dt;
-        //cout<<"velo: "<<velo.length()<<endl;
-
-        //if (pos == nowpos) { // nem fordul elő => van mindig terve a mozgásra
-            //cout<<"BAJ104"<<endl;
-         //}
 
         if (data->getHaromszogIDFromPont(&pos)==-1){
             //pos-=velo*dt;
@@ -2443,7 +2443,7 @@ void jatek( SDL_Window &window, SDL_Renderer &renderer){
                 int y = ev.button.y;
                 vec2 RealPos = view.getRealPos(x,y);
                 if (data.getHaromszogIDFromPont(&RealPos)!=-1)
-                    players.push_back(Player2(&data,&view,&gps,RealPos));
+                    players.push_back(Player2(&data,&view,&gps,RealPos,player_team));
             }
 
 
@@ -2498,7 +2498,10 @@ void jatek( SDL_Window &window, SDL_Renderer &renderer){
                 }
                 if (ev.key.keysym.sym == SDLK_t){
                     player_team++;
-                    player_team = player_team%2;
+                    if (player_team>2){
+                        player_team=0;
+                    }
+                    cout<<"player_team: "<<player_team<<endl;
                 }
                 if (ev.key.keysym.sym == SDLK_p){
                     p=!p;
