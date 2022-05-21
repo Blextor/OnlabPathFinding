@@ -260,6 +260,7 @@ inline bool operator<(const Wall& lhs, const Wall& rhs){
 */
 
 
+
 class Player{
     vec2 position;
     vec2 velocity;
@@ -1545,7 +1546,6 @@ class Player2{
 
     char red = rand()%256, green = rand()%256, blue = rand()%256;
 
-    float speed, radius, mass;
 
 public:
 
@@ -1555,6 +1555,9 @@ public:
 
     static bool stop;
     static bool debugDraw;
+
+    float speed, radius, mass;
+
 
     float nextUtPosDis = 0, upcomingUtPosDis = 0;
 
@@ -1884,7 +1887,7 @@ public:
             vec2 tempPos = nowpos + (pos-nowpos).normalize()*(avgSpeed.length()+maxRealVelo);
             if (data->getHaromszogIDFromPont(&tempPos)!=-1){
                 pos=tempPos;
-                cout<<"YES"<<endl;
+                //cout<<"YES"<<endl;
             }
         }
 
@@ -2016,6 +2019,114 @@ public:
 bool Player2::stop = false;
 bool Player2::debugDraw = false;
 
+struct Ajto{
+    vec2 csuklo, ajtoVege;
+    float hossz;
+    float szog, alapSzog;
+    float minSzog, maxSzog;
+    float vastagsag;
+
+    float degToRad(float deg){
+        return deg*2.0f*3.1415f/360.f;
+    }
+
+    void draw(SDL_Renderer &renderer, View *view){
+        ajtoVege = vec2(cos(degToRad(szog)),sin(degToRad(szog))).normalize()*hossz + csuklo;
+        vec2 A = view->getRelativePos(csuklo + (ajtoVege-csuklo).ortho().normalize()*vastagsag/2);
+        vec2 B = view->getRelativePos(csuklo - (ajtoVege-csuklo).ortho().normalize()*vastagsag/2);
+        vec2 C = view->getRelativePos(ajtoVege + (ajtoVege-csuklo).ortho().normalize()*vastagsag/2);
+        vec2 D = view->getRelativePos(ajtoVege - (ajtoVege-csuklo).ortho().normalize()*vastagsag/2);
+        filledTrigonRGBA(&renderer,A.x,A.y,B.x,B.y,C.x,C.y,180,180,180,255);
+        filledTrigonRGBA(&renderer,D.x,D.y,B.x,B.y,C.x,C.y,180,180,180,255);
+    }
+
+    Ajto(){}
+
+    vec2 realProjection(vec2 P, vec2 A, vec2 B, bool tovabb = false, bool aranyt=false){
+        float x = (P-A).length();
+        float y = (P-B).length();
+        float z = (A-B).length();
+
+        float a = (x*x - y*y + z*z) / (2.f*z);
+
+
+        if (!tovabb){
+            if (a<=0)
+                return A;
+            if (a>=z)
+                return B;
+        }
+
+
+        if (aranyt)
+            return vec2(a,0);
+
+        vec2 ret = (A*(z-a)+B*a)/z;
+        return ret;
+    }
+
+    bool jatekosOnTheHouse(vec2 pos, float radius){
+        vec2 Pv1 = realProjection(pos,csuklo,ajtoVege,false);
+        vec2 Pv2 = realProjection(pos,csuklo,ajtoVege,true);
+        if (Pv2!=Pv1){
+            vec2 orthoP = (csuklo + (ajtoVege-csuklo).ortho());
+            vec2 orthoM = (csuklo - (ajtoVege-csuklo).ortho());
+
+            return ((((pos-orthoM).length()<radius) || ((pos-orthoP).length()<radius)) && ((pos-Pv1).length()<radius+vastagsag/2.0f));
+        } else {
+            return ((pos-Pv1).length()<radius+vastagsag/2.0f);
+        }
+    }
+
+    Ajto(vec2 pos, float alapSzogv, float hosszv, float vastagsagv, float maxSzogv, float minSzogv){
+        csuklo=pos; alapSzog=alapSzogv; hossz=hosszv; vastagsag=vastagsagv; szog=alapSzogv; maxSzog=maxSzogv; minSzog=minSzogv;
+        ajtoVege = vec2(cos(degToRad(szog)),sin(degToRad(szog))).normalize()*hossz + csuklo;
+    }
+
+    void preSimulate(vector<Player2> players, float dt){
+        for (int i=0; i<players.size(); i++){
+            if (jatekosOnTheHouse(players[i].pos,players[i].radius)){
+                vec2 Pv1 = realProjection(players[i].pos,csuklo,ajtoVege,false,true);
+                vec2 orthoP = (csuklo + (ajtoVege-csuklo).ortho());
+                vec2 orthoM = (csuklo - (ajtoVege-csuklo).ortho());
+                if ((orthoP-players[i].pos).length() < (orthoM-players[i].pos).length()){
+                    szog+=abs(dt*10*Pv1.x);
+                    if (szog>maxSzog)
+                        szog=maxSzog;
+                } else {
+                    szog-=abs(dt*10*Pv1.x);
+                    if (szog<minSzog)
+                        szog=minSzog;
+                }
+            }
+            /*vec2 Pv1 = realProjection(players[i].pos,csuklo,ajtoVege,false);
+            vec2 Pv2 = realProjection(players[i].pos,csuklo,ajtoVege,false,true);
+            if ((Pv1-players[i].pos).length()<vastagsag/2.0f+players[i].radius ){
+                vec2 orthoP = (csuklo + (ajtoVege-csuklo).ortho());
+                vec2 orthoM = (csuklo - (ajtoVege-csuklo).ortho());
+                if ((orthoP-players[i].pos).length() < (orthoM-players[i].pos).length()){
+                    szog+=abs(dt*10*Pv1.x);
+                    if (szog>maxSzog)
+                        szog=maxSzog;
+                } else {
+                    szog-=abs(dt*10*Pv1.x);
+                    if (szog<minSzog)
+                        szog=minSzog;
+                }
+            }
+            */
+        }
+    }
+
+    void Simulate(float dt){
+
+    }
+
+    void addForce(vec2 from, vec2 dir, float str){
+
+    }
+};
+
 void jatek( SDL_Window &window, SDL_Renderer &renderer){
 
     clock_t t1 = clock();
@@ -2056,6 +2167,7 @@ void jatek( SDL_Window &window, SDL_Renderer &renderer){
 
     //players[7].team=0;
 
+    Ajto ajto(vec2(7.5f,40),-90,20,2.5f,0,-180);
 
     clock_t dt_timer = clock();
     clock_t viewEvT=0, frameResetT=0, drawT=0, crTriDrawT=0, dataDrawT=0, RenderPresentT=0;
@@ -2322,8 +2434,13 @@ void jatek( SDL_Window &window, SDL_Renderer &renderer){
             //player.simulate(dt,players);
             for (int i=0; i<players.size(); i++)
                 players[i].preSimulate(dt,players);
+            for (int i=0; i<1; i++){
+                ajto.preSimulate(players,dt);
+            }
+
             for (int i=0; i<players.size(); i++)
                 players[i].simulate(dt);
+            ajto.Simulate(dt);
 
             clock_t tFrame = clock();
             view.KeysDown(w,a,s,d,e,q);
@@ -2353,6 +2470,8 @@ void jatek( SDL_Window &window, SDL_Renderer &renderer){
             }
             drawT+=clock()-tFrame;
             tFrame=clock();
+
+            ajto.draw(renderer,&view);
 
             SDL_RenderPresent(&renderer);
             RenderPresentT+=clock()-tFrame;
