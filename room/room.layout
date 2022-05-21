@@ -2,14 +2,14 @@
 <CodeBlocks_layout_file>
 	<FileVersion major="1" minor="0" />
 	<ActiveTarget name="Release" />
+	<File name="draw.cpp" open="1" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="0" topLine="0" />
+		</Cursor>
+	</File>
 	<File name="common.h" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
 			<Cursor1 position="981" topLine="12" />
-		</Cursor>
-	</File>
-	<File name="VecX.h" open="1" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="506" topLine="32" />
 		</Cursor>
 	</File>
 	<File name="game.h" open="1" top="0" tabpos="6" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
@@ -19,7 +19,7 @@
 	</File>
 	<File name="game.cpp" open="1" top="1" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="21444" topLine="56" />
+			<Cursor1 position="75137" topLine="227" />
 		</Cursor>
 		<Folding>
 			<Collapse line="13" />
@@ -32,65 +32,71 @@
 			<Collapse line="221" />
 			<Collapse line="238" />
 			<Collapse line="246" />
-			<Collapse line="262" />
-			<Collapse line="319" />
-			<Collapse line="333" />
-			<Collapse line="410" />
-			<Collapse line="418" />
-			<Collapse line="431" />
-			<Collapse line="439" />
-			<Collapse line="451" />
-			<Collapse line="469" />
-			<Collapse line="504" />
-			<Collapse line="552" />
-			<Collapse line="568" />
-			<Collapse line="683" />
-			<Collapse line="694" />
-			<Collapse line="699" />
-			<Collapse line="827" />
-			<Collapse line="835" />
-			<Collapse line="847" />
-			<Collapse line="885" />
-			<Collapse line="899" />
-			<Collapse line="906" />
-			<Collapse line="910" />
-			<Collapse line="945" />
-			<Collapse line="954" />
-			<Collapse line="974" />
-			<Collapse line="1062" />
-			<Collapse line="1132" />
-			<Collapse line="1249" />
-			<Collapse line="1496" />
-			<Collapse line="1522" />
-			<Collapse line="1564" />
-			<Collapse line="1571" />
-			<Collapse line="1603" />
-			<Collapse line="1607" />
-			<Collapse line="1611" />
-			<Collapse line="1629" />
-			<Collapse line="1678" />
-			<Collapse line="1682" />
-			<Collapse line="1687" />
-			<Collapse line="1703" />
-			<Collapse line="1730" />
-			<Collapse line="1755" />
-			<Collapse line="1828" />
-			<Collapse line="1849" />
-			<Collapse line="1858" />
-			<Collapse line="1875" />
-			<Collapse line="1880" />
-			<Collapse line="1906" />
-			<Collapse line="1926" />
+			<Collapse line="263" />
+			<Collapse line="320" />
+			<Collapse line="334" />
+			<Collapse line="411" />
+			<Collapse line="419" />
+			<Collapse line="432" />
+			<Collapse line="440" />
+			<Collapse line="452" />
+			<Collapse line="470" />
+			<Collapse line="505" />
+			<Collapse line="553" />
+			<Collapse line="569" />
+			<Collapse line="684" />
+			<Collapse line="695" />
+			<Collapse line="700" />
+			<Collapse line="720" />
+			<Collapse line="828" />
+			<Collapse line="836" />
+			<Collapse line="848" />
+			<Collapse line="886" />
+			<Collapse line="900" />
+			<Collapse line="907" />
+			<Collapse line="911" />
+			<Collapse line="946" />
+			<Collapse line="955" />
+			<Collapse line="975" />
+			<Collapse line="1035" />
+			<Collapse line="1067" />
+			<Collapse line="1137" />
+			<Collapse line="1254" />
+			<Collapse line="1501" />
+			<Collapse line="1576" />
+			<Collapse line="1618" />
+			<Collapse line="1622" />
+			<Collapse line="1626" />
+			<Collapse line="1645" />
+			<Collapse line="1652" />
+			<Collapse line="1766" />
+			<Collapse line="1770" />
+			<Collapse line="1775" />
+			<Collapse line="1791" />
+			<Collapse line="1818" />
+			<Collapse line="1948" />
+			<Collapse line="1968" />
+			<Collapse line="1977" />
+			<Collapse line="1994" />
+			<Collapse line="1999" />
+			<Collapse line="2028" />
+			<Collapse line="2032" />
+			<Collapse line="2044" />
+			<Collapse line="2067" />
+			<Collapse line="2189" />
+			<Collapse line="2203" />
+			<Collapse line="2212" />
+			<Collapse line="2386" />
 		</Folding>
+	</File>
+	<File name="VecX.h" open="1" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="2290" topLine="104" />
+		</Cursor>
 	</File>
 	<File name="main.cpp" open="1" top="0" tabpos="1" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
 			<Cursor1 position="23" topLine="0" />
-		</Cursor>
-	</File>
-	<File name="draw.cpp" open="1" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="0" topLine="0" />
 		</Cursor>
 	</File>
 	<File name="VecX.cpp" open="1" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
