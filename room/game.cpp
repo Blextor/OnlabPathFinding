@@ -980,6 +980,7 @@ bool MetsziNemCsakErenti(vec2 *A1, vec2 *A2, vec2 *B1, vec2 *B2, Data *data, vec
     double c1 = a1*(A1->x) + b1*(A1->y);
 
     // Line CD represented as a2x + b2y = c2
+    //                        a2/b2 * x - c2/b2 = -y
     double a2 = B2->y - B1->y;
     double b2 = B1->x - B2->x;
     double c2 = a2*(B1->x)+ b2*(B1->y);
@@ -994,6 +995,9 @@ bool MetsziNemCsakErenti(vec2 *A1, vec2 *A2, vec2 *B1, vec2 *B2, Data *data, vec
         //double x = (b2*c1 - b1*c2)/determinant;
         //double y = (a1*c2 - a2*c1)/determinant;
         //hol = vec2(x,y);
+        float epsz = 0.001f;  /// Ritka, falakok át vezető útvonal generálás oka
+        if (c1/b1-epsz<c2/b2 && c2/b2<c1/b1+epsz)
+            return true;
         return false;
     }
     else
@@ -1587,8 +1591,50 @@ public:
             }
         }
 
-        if (preVelo.length()>5.f)
-            preVelo = preVelo.normalize()*5.f;
+
+        /*
+        if (utvonal.size()>1){
+            vec2 nextPos = utvonal[0].posEnd;
+            vec2 upcomingPos = utvonal[1].posEnd;
+            vec2 nowPos = pos;
+            vec2 toUpcomingPosV = (upcomingPos-nextPos).normalize();
+            toUpcomingPosV.ortho();
+            vec2 opt1 = nextPos+toUpcomingPosV, opt2 = nextPos-toUpcomingPosV;
+            float dis1 = (opt1-nowPos).length()+(opt1-upcomingPos).length();
+            float dis2 = (opt2-nowPos).length()+(opt2-upcomingPos).length();
+            if (dis1>dis2){
+                preVelo+=toUpcomingPosV*dt;
+            } else if (dis1==dis2) {
+                cout<<"Bsszus"<<endl;
+            } else {
+                preVelo-=toUpcomingPosV*dt;
+            }
+        }
+        */
+
+        if (preVelo.length()>1.5f)
+            preVelo = preVelo.normalize()*1.5f;
+
+
+        /*
+        vec2 falakVelo;
+        for (int i=0; i<data->falakV.size(); i++){
+            if (onALine(pos,data->falakV[i].cs1->pos,data->falakV[i].cs2->pos)){
+                vec2 M = (data->falakV[i].cs1->pos+data->falakV[i].cs2->pos)/2.0f;
+                vec2 MA = (data->falakV[i].cs1->pos-M);
+                vec2 ortho = MA.ortho().normalize()*0.001f;
+                vec2 temp = M+ortho;
+                if (data->getHaromszogIDFromPont(&temp)!=-1){
+                    falakVelo -= ortho;
+                } else {
+                    falakVelo += ortho;
+                }
+            }
+        }
+        falakVelo = falakVelo.normalize();
+        */
+
+
         velo+=preVelo;
 
         if (utvonalHossz>radius)
@@ -1609,7 +1655,7 @@ public:
         return a.x * b.x + a.y * b.y;
     }
 
-    vec2 realProjection(vec2 P, vec2 A, vec2 B){
+    vec2 realProjection(vec2 P, vec2 A, vec2 B, bool tovabb = false){
         float x = (P-A).length();
         float y = (P-B).length();
         float z = (A-B).length();
@@ -1617,49 +1663,117 @@ public:
         float a = (x*x - y*y + z*z) / (2.f*z);
 
 
-        if (a<=0)
-            return A;
-        if (a>=z)
-            return B;
+        if (!tovabb){
+            if (a<=0)
+                return A;
+            if (a>=z)
+                return B;
+        }
 
         vec2 ret = (A*(z-a)+B*a)/z;
         return ret;
     }
 
+    bool onALine(vec2 P, vec2 A, vec2 B){
+        vec2 Pv = realProjection(P,A,B,false);
+        if (P==Pv)
+            return true;
+        return false;
+    }
 
-    vec2 projection(vec2 pos, Haromszog haromszog, vec2 from, bool benneVan = true) {
-        if (!benneVan && haromszog.benneVanAPont(pos)){
-            return pos;
+    vec2 projection(vec2 posnew, Haromszog haromszog, vec2 from, Haromszog nextHaromszog = Haromszog(), bool benneVan = true) {
+        if (!benneVan && haromszog.benneVanAPont(posnew)){
+            return posnew;
         }
         vec2 AB = haromszog.B->pos - haromszog.A->pos;
         vec2 AC = haromszog.C->pos - haromszog.A->pos;
         vec2 CB = haromszog.B->pos - haromszog.C->pos;
-        vec2 S = (haromszog.A->pos + haromszog.B->pos +haromszog.C->pos) / 3.f;
+        vec2 S = (haromszog.A->pos + haromszog.B->pos + haromszog.C->pos) / 3.f;
 
         bool ok = false;
-        vec2 temp = HolMetszi(pos,S,haromszog.B->pos,haromszog.A->pos);
+        vec2 temp = HolMetszi(posnew,S,haromszog.B->pos,haromszog.A->pos);
         vec2 ret;
         if (!ok && temp!= vec2(-1369,-1369)){
-            ret = realProjection(pos,haromszog.B->pos,haromszog.A->pos);
-            ///cout<<"a"<<endl;  // Fontos lehet az egyhelyben ragadásnál
+            ret = realProjection(posnew,haromszog.B->pos,haromszog.A->pos,true);
             ok=true;
+            if (data->getHaromszogIDFromPont(&ret)==-1){
+                cout<<"BAJ107"<<endl;
+                ret = realProjection(posnew,haromszog.B->pos,haromszog.A->pos,false);
+                if (data->getHaromszogIDFromPont(&ret)==-1){
+                    cout<<"BAJ106"<<endl;
+                    ok=false;
+                }
+            }
+            if (from==ret)
+                ok=false;
         }
 
-        temp = HolMetszi(pos,S,haromszog.C->pos,haromszog.A->pos);
+        temp = HolMetszi(posnew,S,haromszog.C->pos,haromszog.A->pos);
         if (!ok && temp!= vec2(-1369,-1369)){
-            ret = realProjection(pos,haromszog.C->pos,haromszog.A->pos);
-            ///cout<<"b"<<endl;  // Fontos lehet
+            ret = realProjection(posnew,haromszog.C->pos,haromszog.A->pos,true);
             ok=true;
+            if (data->getHaromszogIDFromPont(&ret)==-1){
+                cout<<"BAJ107"<<endl;
+                ret = realProjection(posnew,haromszog.C->pos,haromszog.A->pos,false);
+                if (data->getHaromszogIDFromPont(&ret)==-1){
+                    cout<<"BAJ106"<<endl;
+                    ok=false;
+                }
+            }
+            if (from==ret)
+                ok=false;
         }
 
-        temp = HolMetszi(pos,S,haromszog.B->pos,haromszog.C->pos);
+        temp = HolMetszi(posnew,S,haromszog.B->pos,haromszog.C->pos);
         if (!ok && temp!= vec2(-1369,-1369)){
-            ret = realProjection(pos,haromszog.B->pos,haromszog.C->pos);
-            ///cout<<"c"<<endl;  // Fontos lehet
+            ret = realProjection(posnew,haromszog.B->pos,haromszog.C->pos,true);
             ok=true;
+            if (data->getHaromszogIDFromPont(&ret)==-1){
+                cout<<"BAJ107"<<endl;
+                ret = realProjection(posnew,haromszog.B->pos,haromszog.C->pos,false);
+                if (data->getHaromszogIDFromPont(&ret)==-1){
+                    cout<<"BAJ106"<<endl;
+                    ok=false;
+                }
+            }
+            if (from==ret)
+                ok=false;
         }
         if (!ok){
             cout<<"HUPSZ"<<endl;
+            if (utvonal.size()>1){
+                cout<<"BAJ115"<<endl;
+                vec2 newPos = utvonal[1].posStart+(utvonal[1].posEnd-utvonal[1].posStart).normalize()*0.01f;
+                if ((newPos-from).length()<=0.1f){
+                    cout<<"BAJ116"<<endl;
+                    utvonal.erase(utvonal.begin());
+                    utvonalHossz=0;
+                    for (int i=0; i<utvonal.size(); i++){
+                        utvonalHossz+=(utvonal[i].posEnd-utvonal[i].posStart).length();
+                    }
+                    //cout<<"BAJ113"<<endl;
+                    if (data->getHaromszogIDFromPont(&newPos)!=-1)
+                        return newPos;
+                    else
+                        cout<<"BAJ110"<<endl;
+                } else {
+                    cout<<"BAJ117 "<<from.x<<" "<<from.y<<" "<<utvonal[0].posEnd.x<<" "<<utvonal[0].posEnd.y<<endl;
+                    cout<<utvonal[1].posStart.x<<" "<<utvonal[1].posStart.y<<" "<<newPos.x<<" "<<newPos.y<<endl;
+                    vec2 ret2 = from + (utvonal[0].posEnd-from).normalize()*0.01f;
+                    cout<<ret2.x<<" "<<ret2.y<<endl;
+                    if (data->getHaromszogIDFromPont(&ret2)!=-1)
+                        return ret2;
+                    else
+                        cout<<"BAJ111"<<endl;
+                }
+            } else if (utvonal.size()==1) {
+                vec2 ret2 = from + (utvonal[0].posEnd-from).normalize()*0.01f;
+                if (data->getHaromszogIDFromPont(&ret2)!=-1)
+                    return ret2;
+                else
+                    cout<<"BAJ112"<<endl;
+            }
+            cout<<"HIPSZ"<<endl;
             return from;
 
         }
@@ -1669,6 +1783,9 @@ public:
             return from;
         }
 
+        if (ret == from) {
+            cout<<"BAJ105"<<endl;
+        }
         return ret;
 
     }
@@ -1731,16 +1848,26 @@ public:
     void simulate(float dt){
         if (stop)
             return;
+
         int harom = data->getHaromszogIDFromPont(&pos);
-        if (utvonal.size()>0 && harom==-1 && !baj){
+
+        if (utvonal.size()>0 && harom==-1 && !baj){ // nem szokott előfordulni, de jelzésnek beteszem
+            cout<<"BAJ101"<<endl;
             baj=true;
-            cout<<"Baj Van"<<endl;
         }
 
-        if (harom==-1)
+        if (harom==-1){ // nem szokott előfordulni, de jelzésnek beteszem
+            cout<<"BAJ102"<<endl;
             return;
+        }
+
+        vec2 nowpos = pos;
 
         pos+=velo*dt;
+
+        if (pos == nowpos) { // nem fordul elő => van mindig terve a mozgásra
+            cout<<"BAJ104"<<endl;
+        }
 
         if (data->getHaromszogIDFromPont(&pos)==-1){
             //pos-=velo*dt;
@@ -1750,6 +1877,9 @@ public:
 
             //cout<<"hapci"<<endl;
             pos = projection(pos,haromszog,pos-velo*dt);
+            if (pos == nowpos) {
+                cout<<"BAJ103"<<endl;
+            }
             //cout<<"hapci2"<<endl;
 
             // AB
@@ -1808,7 +1938,7 @@ public:
                         upcomingUtPosDis=(utvonal[1].posEnd-pos).length();
                     }
                     utvonalkereses(cel);
-                    cout<<"JUPPI"<<endl;
+                    //cout<<"JUPPI"<<endl;
                     return;
                 }
             }
@@ -1816,7 +1946,8 @@ public:
 
 
             if (!vanUtvonalVege || utvonal.size()>1){
-                if ((utvonal[0].posEnd-pos).length()<radius){
+                // EZ LEHET nem is kell
+                if ((utvonal[0].posEnd-pos).length()<0.0f /*radius*/){
                     //0++;
                     utvonalHossz -= (utvonal[0].posStart-utvonal[0].posEnd).length();
                     utvonal.erase(utvonal.begin());
@@ -1827,23 +1958,22 @@ public:
     }
 
     void utvonalkereses(vec2 realpos){
-        bool Tdebug = true;
+        bool Tdebug = false;
         if (Tdebug) cout<<"Start from: ("<<pos.x<<", "<<pos.y<<"), to: ("<<realpos.x<<", "<<realpos.y<<")"<<endl;
         utvonal = gps->UtvonalKereses(pos,realpos); // így már jó a felelősség
 //        aktualisUtvonalCel=0;
         if (Tdebug) cout<<"Bef"<<endl;
 
-        if (Tdebug) {
+
             if (utvonal.size()>0){
-                cout<<utvonal[0].posStart.x<<" "<<utvonal[0].posStart.y<<", "<<utvonal[utvonal.size()-1].posEnd.x<<" "<<utvonal[utvonal.size()-1].posEnd.y<<" "<<utvonal.size()<<endl;
+                if (Tdebug) cout<<utvonal[0].posStart.x<<" "<<utvonal[0].posStart.y<<", "<<utvonal[utvonal.size()-1].posEnd.x<<" "<<utvonal[utvonal.size()-1].posEnd.y<<" "<<utvonal.size()<<endl;
                 utvonalHossz=0;
                 for (int i=0;i<utvonal.size();i++){
                     utvonalHossz += (utvonal[i].posStart-utvonal[i].posEnd).length();
                 }
             }
             else
-                cout<<"Nincs utvonal."<<endl;
-        }
+                if (Tdebug) cout<<"Nincs utvonal."<<endl;
         upcomingUtPosDis = -1, nextUtPosDis = -1;
     }
 
@@ -1879,13 +2009,20 @@ public:
 
 
     void draw(SDL_Renderer &renderer){
+
+        vec2 RelPos = view->getRelativePos(pos.x,pos.y);
+        if (view->inRender(RelPos,radius)){
+            filledCircleRGBA(&renderer,RelPos.x,RelPos.y,radius*view->zoom,red,green,blue,255);
+
+        }
         for (size_t i=0; i<utvonal.size(); i++){
             vec2 RS = view->getRelativePos(utvonal[i].posStart), RE = view->getRelativePos(utvonal[i].posEnd);
             lineRGBA(&renderer,RS.x,RS.y,RE.x,RE.y,240,20,10,255);
         }
-        vec2 RelPos = view->getRelativePos(pos.x,pos.y);
-        if (view->inRender(RelPos,radius))
-            filledCircleRGBA(&renderer,RelPos.x,RelPos.y,radius*view->zoom,red,green,blue,255);
+        if (view->inRender(RelPos,radius)){
+        lineRGBA(&renderer,RelPos.x,RelPos.y,RelPos.x+velo.x,RelPos.y+velo.y,50,255,50,255);
+
+        }
     }
 
 };
@@ -2069,7 +2206,8 @@ void jatek( SDL_Window &window, SDL_Renderer &renderer){
 
                 if (ev.key.keysym.sym == SDLK_UP){
                     //up=true;
-                    crTri.loadFile("map.txt");
+                    crTri.loadFile("doorTest");
+                    data.loadFileFalak("doorTestWalls",&view);
                 }
 
                 if (ev.key.keysym.sym == SDLK_DOWN){
@@ -2082,6 +2220,12 @@ void jatek( SDL_Window &window, SDL_Renderer &renderer){
                     cout<<endl;
                         //down=true;
                     cout<<"dataHarIDFromPoint Teszt 10000: "<<clock()-t<<endl;
+                }
+                if (ev.key.keysym.sym == SDLK_RIGHT){
+                    Player2 temp;
+                    vec2 temp1 = temp.realProjection(vec2(16,0),vec2(0,0),vec2(-1,-1),true);
+                    vec2 temp2 = temp.realProjection(vec2(16,0),vec2(0,0),vec2(-1,-1),false);
+                    cout<<temp1.x<<" "<<temp1.y<<" "<<temp2.x<<" "<<temp2.y<<endl;
                 }
                 if (ev.key.keysym.sym == SDLK_LEFT){
                 //    left=true;
