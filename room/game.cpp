@@ -1549,7 +1549,12 @@ class Player2{
 
 public:
 
+    vec2 avgSpeed;
+    int cntSample = 0, maxSample = 30;
+    float maxRealVelo = 0.2f;
+
     static bool stop;
+    static bool debugDraw;
 
     float nextUtPosDis = 0, upcomingUtPosDis = 0;
 
@@ -1592,47 +1597,8 @@ public:
         }
 
 
-        /*
-        if (utvonal.size()>1){
-            vec2 nextPos = utvonal[0].posEnd;
-            vec2 upcomingPos = utvonal[1].posEnd;
-            vec2 nowPos = pos;
-            vec2 toUpcomingPosV = (upcomingPos-nextPos).normalize();
-            toUpcomingPosV.ortho();
-            vec2 opt1 = nextPos+toUpcomingPosV, opt2 = nextPos-toUpcomingPosV;
-            float dis1 = (opt1-nowPos).length()+(opt1-upcomingPos).length();
-            float dis2 = (opt2-nowPos).length()+(opt2-upcomingPos).length();
-            if (dis1>dis2){
-                preVelo+=toUpcomingPosV*dt;
-            } else if (dis1==dis2) {
-                cout<<"Bsszus"<<endl;
-            } else {
-                preVelo-=toUpcomingPosV*dt;
-            }
-        }
-        */
-
         if (preVelo.length()>1.5f)
             preVelo = preVelo.normalize()*1.5f;
-
-
-        /*
-        vec2 falakVelo;
-        for (int i=0; i<data->falakV.size(); i++){
-            if (onALine(pos,data->falakV[i].cs1->pos,data->falakV[i].cs2->pos)){
-                vec2 M = (data->falakV[i].cs1->pos+data->falakV[i].cs2->pos)/2.0f;
-                vec2 MA = (data->falakV[i].cs1->pos-M);
-                vec2 ortho = MA.ortho().normalize()*0.001f;
-                vec2 temp = M+ortho;
-                if (data->getHaromszogIDFromPont(&temp)!=-1){
-                    falakVelo -= ortho;
-                } else {
-                    falakVelo += ortho;
-                }
-            }
-        }
-        falakVelo = falakVelo.normalize();
-        */
 
 
         velo+=preVelo;
@@ -1770,8 +1736,10 @@ public:
                 vec2 ret2 = from + (utvonal[0].posEnd-from).normalize()*0.01f;
                 if (data->getHaromszogIDFromPont(&ret2)!=-1)
                     return ret2;
-                else
+                else {
+                    utvonalkereses(cel);
                     cout<<"BAJ112"<<endl;
+                }
             }
             cout<<"HIPSZ"<<endl;
             return from;
@@ -1912,6 +1880,24 @@ public:
             */
         }
 
+        if ((pos-nowpos-avgSpeed).length()>maxRealVelo && avgSpeed.length()<(pos-nowpos).length()){
+            vec2 tempPos = nowpos + (pos-nowpos).normalize()*(avgSpeed.length()+maxRealVelo);
+            if (data->getHaromszogIDFromPont(&tempPos)!=-1){
+                pos=tempPos;
+                cout<<"YES"<<endl;
+            }
+        }
+
+        avgSpeed*=cntSample;
+        if (cntSample==maxSample){
+            avgSpeed/=maxSample;
+            cntSample--;
+            avgSpeed*=cntSample;
+        }
+        avgSpeed+=(pos-nowpos);
+        cntSample++;
+        avgSpeed/=cntSample;
+
         if (utvonal.size()>0){
             utvonalHossz -= (utvonal[0].posStart-utvonal[0].posEnd).length();
             utvonal[0].posStart = pos;
@@ -2015,11 +2001,11 @@ public:
             filledCircleRGBA(&renderer,RelPos.x,RelPos.y,radius*view->zoom,red,green,blue,255);
 
         }
-        for (size_t i=0; i<utvonal.size(); i++){
+        for (size_t i=0; debugDraw &&  i<utvonal.size(); i++){
             vec2 RS = view->getRelativePos(utvonal[i].posStart), RE = view->getRelativePos(utvonal[i].posEnd);
             lineRGBA(&renderer,RS.x,RS.y,RE.x,RE.y,240,20,10,255);
         }
-        if (view->inRender(RelPos,radius)){
+        if (debugDraw && view->inRender(RelPos,radius)){
         lineRGBA(&renderer,RelPos.x,RelPos.y,RelPos.x+velo.x,RelPos.y+velo.y,50,255,50,255);
 
         }
@@ -2028,6 +2014,7 @@ public:
 };
 
 bool Player2::stop = false;
+bool Player2::debugDraw = false;
 
 void jatek( SDL_Window &window, SDL_Renderer &renderer){
 
@@ -2158,6 +2145,7 @@ void jatek( SDL_Window &window, SDL_Renderer &renderer){
                     data.csucsokDrawSwitch= !data.csucsokDrawSwitch;
                     data.falakDrawSwitch= !data.falakDrawSwitch;
                     data.haromszogekDrawSwitch= !data.haromszogekDrawSwitch;
+                    Player2::debugDraw=!Player2::debugDraw;
                 }
                 if (ev.key.keysym.sym == SDLK_t){
                     player_team++;
