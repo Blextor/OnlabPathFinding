@@ -655,7 +655,7 @@ struct Data{
     int addNewCsucs(vec2 csucs){
         int CsucsID = getExistCsucs(csucs);
         if (CsucsID==-1){
-            cout<<"new csucs"<<endl;
+            //cout<<"new csucs"<<endl;
             //Csucs a = Csucs(csucs);
 
             csucsok.push_back(Csucs(csucs));
@@ -667,23 +667,23 @@ struct Data{
             vec2 nxy = csucs+vec2(SZELES*palyameret/2,MAGAS*palyameret/2);
             vec2 n2xy = nxy/szeleteltseg;
             if (DEBUG) cout<<"ID: "<<id<<endl;
-            cout<<n2xy.x<<" "<<n2xy.y<<" "<<SZELES*palyameret/szeleteltseg-1<<" "<<csucs.x<<" "<<csucs.y<<" "<<nxy.x<<" "<<nxy.y<<endl;
+            //cout<<n2xy.x<<" "<<n2xy.y<<" "<<SZELES*palyameret/szeleteltseg-1<<" "<<csucs.x<<" "<<csucs.y<<" "<<nxy.x<<" "<<nxy.y<<endl;
             for (int i=n2xy.x-2; i<=n2xy.x+2; i++){
                 for (int j=n2xy.y-2; j<=n2xy.y+2; j++){
                     if (n2xy.x<0 || n2xy.y<0 || n2xy.x>SZELES*palyameret/szeleteltseg-1 || n2xy.y>SZELES*palyameret/szeleteltseg-1){
-                        cout<<n2xy.x<<" "<<n2xy.y<<" "<<SZELES*palyameret/szeleteltseg-1<<" "<<csucs.x<<" "<<csucs.y<<" "<<nxy.x<<" "<<nxy.y<<endl;
+                        //cout<<n2xy.x<<" "<<n2xy.y<<" "<<SZELES*palyameret/szeleteltseg-1<<" "<<csucs.x<<" "<<csucs.y<<" "<<nxy.x<<" "<<nxy.y<<endl;
                         //cout<<"K";
                     }
                     else {
-                        cout<<(vec2(i,j)*szeleteltseg-nxy).length()<<" "<<(vec2(i,j)*szeleteltseg-nxy).x<<" "<<(vec2(i,j)*szeleteltseg-nxy).y<<" "<<csucsR<<" "<<csucsR*3.f<<endl;
+                        //cout<<(vec2(i,j)*szeleteltseg-nxy).length()<<" "<<(vec2(i,j)*szeleteltseg-nxy).x<<" "<<(vec2(i,j)*szeleteltseg-nxy).y<<" "<<csucsR<<" "<<csucsR*3.f<<endl;
                         if ((vec2(i,j)*szeleteltseg-nxy).length()<csucsR*3.f){
                             //
-                            cout<<"ADD"<<endl;
+                            //cout<<"ADD"<<endl;
                             teruletekFoglaltsagaCsucs[i][j].push_back(id);
                         }
                     }
                 }
-                cout<<endl;
+                //cout<<endl;
             }
             if (DEBUG) cout<<endl;
             return getCsucsR(csucsok.size()-1).id;
@@ -1303,7 +1303,7 @@ struct UtvonalKereso{
                         }
                         if (A&&B){
                             if (FalonKivulCsucsokKozt(&utvonal[utvonal.size()-1],&utvonal[i],data)){
-                                    cout<<"Talan"<<endl;
+                                cout<<"Talan"<<endl;
                                 break;
                             }
                         }
@@ -1468,7 +1468,7 @@ struct UtvonalKereso{
 
                 //cout<<"tempH IDA: "<<tempH.A->id<<endl;
                 //3-szor megejtem ez, a háromszög 3 csúcsára egyszer-egyszer
-                // létrehozom a lehetséges új köztes uticélt, hogy melyik csúcsról is lenne szó, mennyi az addig megtett út, a becsült hátralévő és az előző megálló
+                // létrehozom a lehetséges új köztes uticélt, hogy melyik csúcsról is lenne szó, mennyi az addaddig megtett út, a becsült hátralévő és az előző megálló
                 UtPos cs1 = UtPos(*(tempH.A),temp.eddigMegtett+(tempH.A->pos - temp.csucs.pos).length(),(tempH.A->pos - RealEnd).length(),temp);
                 /* RÖVIDÍTÉS */
                 //cs1 = UtvonalKeresesVagas(cs1,RealStart);
@@ -1692,7 +1692,7 @@ public:
     vec2 avgSpeed;
     int cntSample = 0, maxSample = 30;
     float maxRealVelo = 0.1f;
-    float maxSpeed = 0.3f;
+    float maxSpeed = 0.5f;
 
     static bool stop;
     static bool debugDraw;
@@ -1716,7 +1716,7 @@ public:
 
 
     Player2(Data *Ddata, View *View, UtvonalKereso *GPS,
-             vec2 Pos = vec2(0,0), int player_team=0, float Speed = 100.f, float Radius = 5.f, float Mass = 1.f, vec2 Velo = vec2(0,0)){
+             vec2 Pos = vec2(0,0), int player_team=0, float Speed = 200.f, float Radius = 5.f, float Mass = 1.f, vec2 Velo = vec2(0,0)){
         data=Ddata; view=View; gps=GPS; team = player_team;
         pos=Pos; speed=Speed; radius=Radius; mass=Mass; velo=Velo;
     }
@@ -2138,11 +2138,11 @@ public:
         */
 
 
-        if (velo.length()>0.5f && (pos-nowpos).length()<1.0f && utvonal.size()>0){
+        if (velo.length()>0.5f && (pos-nowpos).length()<0.1f && avgSpeed.length()>=0.1f && utvonal.size()>0){
             bool ok = false;
             vec2 hol;
             for (int i=0; i<data->falakV.size(); i++){
-                ok = ok || MetsziNemCsakErenti(&utvonal[0].posStart,&utvonal[0].posEnd,&data->falakV[i].cs1->pos,&data->falakV[i].cs2->pos,/*data,*/hol);
+                ok = ok || MetsziNemCsakErenti(&nowpos,&utvonal[0].posEnd,&data->falakV[i].cs1->pos,&data->falakV[i].cs2->pos,/*data,*/hol);
             }
             if (ok){
                 utvonalkereses(cel);
@@ -2176,7 +2176,7 @@ public:
                         nextUtPosDis=(utvonal[0].posEnd-pos).length();
                         upcomingUtPosDis=(utvonal[1].posEnd-pos).length();
                     }
-                    utvonalkereses(cel);
+                    //utvonalkereses(cel);
                     //cout<<"JUPPI"<<endl;
                     return;
                 }
