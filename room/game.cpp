@@ -26,6 +26,182 @@ unsigned long t;
 }
 
 
+bool Metszi(vec2 A1, vec2 A2, vec2 B1, vec2 B2){
+    // Line AB represented as a1x + b1y = c1
+    double a1 = A2.y - A1.y;
+    double b1 = A1.x - A2.x;
+    double c1 = a1*(A1.x) + b1*(A1.y);
+
+    // Line CD represented as a2x + b2y = c2
+    double a2 = B2.y - B1.y;
+    double b2 = B1.x - B2.x;
+    double c2 = a2*(B1.x)+ b2*(B1.y);
+
+    double determinant = a1*b2 - a2*b1;
+
+    if (determinant == 0)
+    {
+        // The lines are parallel. This is simplified
+        // by returning a pair of FLT_MAX
+        //return make_pair(FLT_MAX, FLT_MAX);
+
+    }
+    else
+    {
+        double x = (b2*c1 - b1*c2)/determinant;
+        double y = (a1*c2 - a2*c1)/determinant;
+        if (min(A1.x,A2.x) <= x && x <= max(A1.x,A2.x)  &&  min(A1.y,A2.y) <= y && y <= max(A1.y,A2.y)){
+            if (min(B1.x,B2.x) <= x && x <= max(B1.x,B2.x)  &&  min(B1.y,B2.y) <= y && y <= max(B1.y,B2.y)){
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+
+int falonkiv = 0;
+
+struct Csucs{
+    static int counter;
+
+    //Haromszog **haromszogek;
+    bool torolt = false;
+    bool uj = true;
+    //unsigned int haromszogID = 0;
+    vector<int> haromszogID;
+
+    int id = -1;
+    vec2 pos = vec2(-1,-1);
+
+    Csucs(){}
+    Csucs(vec2 newpos){pos=newpos; id=counter; counter++;
+    }
+    Csucs(vec2 newpos, bool fs){
+        pos=newpos;
+    }
+
+    void addHaromszogID(int ID){
+        //cout<<"CsucsHaromSzogID : "<<id<<" "<<ID<<endl;
+        haromszogID.push_back(ID);
+    }
+};
+
+
+
+float PontVonalTavolsag(vec2 P, vec2 A, vec2 B){
+    float x = (P-A).length();
+    float y = (P-B).length();
+    float z = (A-B).length();
+
+    float a = (x*x - y*y + z*z) / (2.f*z);
+
+    vec2 ret = (A*(z-a)+B*a)/z;
+    float epsz = 0.001f;
+    if ((ret-A).length()+(ret-B).length()<(A-B).length()+epsz){
+        return (ret-P).length();
+    } else {
+        return min((ret-A).length(),(ret-B).length());
+    }
+
+    //return (ret-P).length();
+}
+
+long int metszinemcnt = 0;
+
+
+vec2 HolMetszi(vec2 A1, vec2 A2, vec2 B1, vec2 B2){
+    // Line AB represented as a1x + b1y = c1
+    double a1 = A2.y - A1.y;
+    double b1 = A1.x - A2.x;
+    double c1 = a1*(A1.x) + b1*(A1.y);
+
+    // Line CD represented as a2x + b2y = c2
+    double a2 = B2.y - B1.y;
+    double b2 = B1.x - B2.x;
+    double c2 = a2*(B1.x)+ b2*(B1.y);
+
+    double determinant = a1*b2 - a2*b1;
+
+    if (determinant == 0)
+    {
+        // The lines are parallel. This is simplified
+        // by returning a pair of FLT_MAX
+        //return make_pair(FLT_MAX, FLT_MAX);
+    }
+    else
+    {
+        double x = (b2*c1 - b1*c2)/determinant;
+        double y = (a1*c2 - a2*c1)/determinant;
+        if (min(A1.x,A2.x) <= x && x <= max(A1.x,A2.x)  &&  min(A1.y,A2.y) <= y && y <= max(A1.y,A2.y)){
+            if (min(B1.x,B2.x) <= x && x <= max(B1.x,B2.x)  &&  min(B1.y,B2.y) <= y && y <= max(B1.y,B2.y)){
+                return vec2(x,y);
+            }
+        }
+    }
+    return vec2(-1369,-1369);
+}
+
+bool MetsziNemCsakErenti(vec2 *A1, vec2 *A2, vec2 *B1, vec2 *B2, /*Data *data, */vec2 &hol, bool bo = false){
+    metszinemcnt++;
+    // Line AB represented as a1x + b1y = c1
+    double a1 = A2->y - A1->y;
+    double b1 = A1->x - A2->x;
+    double c1 = a1*(A1->x) + b1*(A1->y);
+
+    // Line CD represented as a2x + b2y = c2
+    //                        a2/b2 * x - c2/b2 = -y
+    double a2 = B2->y - B1->y;
+    double b2 = B1->x - B2->x;
+    double c2 = a2*(B1->x)+ b2*(B1->y);
+
+    double determinant = a1*b2 - a2*b1;
+    if (determinant == 0)
+    {
+        // The lines are parallel. This is simplified
+        // by returning a pair of FLT_MAX
+        //return make_pair(FLT_MAX, FLT_MAX);
+        //cout<<"MI A NULLA OSZTAS EREDMENYE"<<endl;
+        //double x = (b2*c1 - b1*c2)/determinant;
+        //double y = (a1*c2 - a2*c1)/determinant;
+        //hol = vec2(x,y);
+        float epsz = 0.001f;  /// Ritka, falakok át vezető útvonal generálás oka
+        if (c1/b1-epsz<c2/b2 && c2/b2<c1/b1+epsz)
+            return true;
+        return false;
+    }
+    else
+    {
+        double x = (b2*c1 - b1*c2)/determinant;
+        double y = (a1*c2 - a2*c1)/determinant;
+        hol = vec2(x,y);
+        if (min(A1->x,A2->x) <= x && x <= max(A1->x,A2->x)  &&  min(A1->y,A2->y) <= y && y <= max(A1->y,A2->y)){
+            if (min(B1->x,B2->x) <= x && x <= max(B1->x,B2->x)  &&  min(B1->y,B2->y) <= y && y <= max(B1->y,B2->y)){
+                if (((*A1)!=vec2(x,y)) && ((*A2)!=vec2(x,y))){
+                    //if ((*A2))
+                    //cout<<"hol "<<(double)x<<" "<<(double)y<<", A1: "<<(*A1).x<<" "<<(*A1).y<<", A2: "<<(*A2).x<<" "<<(*A2).y<<" "<<true<<((*A1)!=vec2(x,y))<<((*A2)!=vec2(x,y))<<((*A2)!=vec2(15,20))<<endl;
+                    //bool ok = false;
+                    //for (int i=0; i<data->)
+                    return true;
+                }
+                /* Csúcsok lekezelésére van ez itt, de már van külön megoldás rá
+                } else {
+                    vec2 kerdeses = vec2(0,0);
+                    if (A1==vec2(x,y)){
+                        kerdeses = A1 + (A2-A1).normalize()*1.0f;
+                    } else {
+                        kerdeses = A2 + (A1-A2).normalize()*1.0f;
+                    }
+                    if (data->getHaromszogIDFromPont(kerdeses)==-1)
+                        return true;
+                }
+                */
+            }
+        }
+    }
+    return false;
+}
+
 struct View{
     vec2 position = vec2(-100.f,-100.f);
 
@@ -34,20 +210,20 @@ struct View{
     float zoom=1;
     float rotateAngle=0;
 
-
+    float moveSpeed = 3.f;
 
     void KeysDown(bool w, bool a, bool s, bool d, bool u, bool z){
         if (w){
-            middle.y-=1 / zoom;
+            middle.y-=1 / zoom * moveSpeed;
         }
         if (a){
-            middle.x-=1 / zoom;
+            middle.x-=1 / zoom * moveSpeed;
         }
         if (s){
-            middle.y+=1 / zoom;
+            middle.y+=1 / zoom * moveSpeed;
         }
         if (d){
-            middle.x+=1 / zoom;
+            middle.x+=1 / zoom * moveSpeed;
         }
         if (u){
             zoom*=1.1f;
@@ -78,12 +254,39 @@ struct View{
         return RealativePos;
     }
 
-    bool inRender(vec2 RelPos, int radius){
-        if (RelPos.x < -radius*zoom || RelPos.x - radius*zoom > SZELES )
+    bool inRenderCircle(vec2 RelPos, int radius){
+        if (RelPos.x < -radius*zoom || RelPos.x - radius*zoom > SZELES ){
+            //cout<<"HAPCI3 "<<RelPos.x<<" "<<-radius*zoom<<" "<<RelPos.x - radius*zoom<<" "<<SZELES<<endl;
             return false;
-        if (RelPos.y < -radius*zoom || RelPos.y - radius*zoom > MAGAS )
+        }
+        if (RelPos.y < -radius*zoom || RelPos.y - radius*zoom > MAGAS ){
+            //cout<<"HAPCI2 "<<RelPos.y<<" "<<-radius*zoom<<" "<<RelPos.y - radius*zoom<<" "<<MAGAS<<endl;
             return false;
+        }
         return true;
+    }
+
+    bool inRenderLine(vec2 A, vec2 B){
+        if (inRenderCircle(A,0) || (inRenderCircle(B,0)))
+            return true;
+
+        vec2 BF = vec2(0,0);
+        vec2 JF = vec2(SZELES,0);
+        vec2 BL = vec2(0,MAGAS);
+        vec2 JL = vec2(SZELES,MAGAS);
+
+        if (Metszi(A,B,BF,JF) ||
+            Metszi(A,B,BF,BL) ||
+            Metszi(A,B,JL,JF) ||
+            Metszi(A,B,JL,BL)
+            )
+                return true;
+
+        return false;
+    }
+
+    bool inRenderTri(vec2 A, vec2 B, vec2 C){
+        return (inRenderLine(A,B) || inRenderLine(A,C) || inRenderLine(C,B));
     }
 
 };
@@ -116,30 +319,7 @@ public:
 };
 
 
-struct Csucs{
-    static int counter;
 
-    //Haromszog **haromszogek;
-    bool torolt = false;
-    bool uj = true;
-    //unsigned int haromszogID = 0;
-    vector<int> haromszogID;
-
-    int id = -1;
-    vec2 pos = vec2(-1,-1);
-
-    Csucs(){}
-    Csucs(vec2 newpos){pos=newpos; id=counter; counter++;
-    }
-    Csucs(vec2 newpos, bool fs){
-        pos=newpos;
-    }
-
-    void addHaromszogID(int ID){
-        //cout<<"CsucsHaromSzogID : "<<id<<" "<<ID<<endl;
-        haromszogID.push_back(ID);
-    }
-};
 
 /*
 list<Csucs>::[]operator (int i){
@@ -211,11 +391,14 @@ public:
         a=A; b=B; c=C; view=viewcs;
     }
 
-    void draw(SDL_Renderer &renderer){
+    void draw(SDL_Renderer &renderer, bool asztal=false){
         vec2 rela = view->getRelativePos(a);
         vec2 relb = view->getRelativePos(b);
         vec2 relc = view->getRelativePos(c);
-        filledTrigonRGBA(&renderer,rela.x,rela.y,relb.x,relb.y,relc.x,relc.y,45,45,45,255);
+        if (asztal)
+            filledTrigonRGBA(&renderer,rela.x,rela.y,relb.x,relb.y,relc.x,relc.y,207,165,141,255);
+        else
+            filledTrigonRGBA(&renderer,rela.x,rela.y,relb.x,relb.y,relc.x,relc.y,45,45,45,255);
     }
 };
 
@@ -359,7 +542,8 @@ struct Data{
 
 
     vector<Fal> diszFalak;
-    bool csucsokDrawSwitch=false, diszfalakDrawSwitch=true, falakDrawSwitch=false, haromszogekDrawSwitch=false;
+    vector<Fal> diszAsztalok;
+    bool csucsokDrawSwitch=false, diszfalakDrawSwitch=true, falakDrawSwitch=false, diszAsztalokDrawSwitch=true, haromszogekDrawSwitch=false;
 
 
     Csucs failSafeCs = Csucs();
@@ -646,6 +830,12 @@ struct Data{
         return 0;
     }
 
+    bool haromszogInView(Haromszog *haromszog, View *view){
+        if (view->inRenderCircle(haromszog->A->pos,0) || view->inRenderCircle(haromszog->B->pos,0) || view->inRenderCircle(haromszog->C->pos,0))
+            return true;
+        //if ()
+    }
+
     void draw(SDL_Renderer &renderer, View view){
 
         for (size_t i=0; i<haromszogek.size() && haromszogekDrawSwitch; i++){
@@ -656,30 +846,40 @@ struct Data{
             vec2 C = view.getRelativePos(ptr->C->pos);
             //bool a1 = view.inRender(cs1,0), a2 = view.inRender(cs2,0), a3 = view.inRender(cs3,0);
             //if (a1||a2||a3)
-            filledTrigonRGBA(&renderer,A.x,A.y,B.x,B.y,C.x,C.y,130,140,210,100);
+            if (view.inRenderTri(A,B,C)){
+                filledTrigonRGBA(&renderer,A.x,A.y,B.x,B.y,C.x,C.y,130,140,210,100);
             //if (a1||a2)
                 lineRGBA(&renderer,A.x,A.y,B.x,B.y,255,108,160,200);
             //if (a1||a3)
                 lineRGBA(&renderer,A.x,A.y,C.x,C.y,255,108,160,200);
             //if (a3||a2)
                 lineRGBA(&renderer,C.x,C.y,B.x,B.y,255,108,160,200);
+            }
         }
 
 
         list<Wall>::iterator it = falak.begin();
         for (size_t i=0; i<falak.size() && falakDrawSwitch; i++){
             vec2 A = view.getRelativePos(it->cs1->pos), B = view.getRelativePos(it->cs2->pos);
-            lineRGBA(&renderer,A.x,A.y,B.x,B.y,50,50,255,200);
+            if (view.inRenderLine(A,B))
+                lineRGBA(&renderer,A.x,A.y,B.x,B.y,50,50,255,200);
             it++;
         }
 
-        for (int i=0; i<diszFalak.size() && diszfalakDrawSwitch; i++){
-            diszFalak[i].draw(renderer);
+        for (int i=0; i<diszAsztalok.size() && diszAsztalokDrawSwitch; i++){
+            if (view.inRenderTri(view.getRelativePos(diszAsztalok[i].a),view.getRelativePos(diszAsztalok[i].b),view.getRelativePos(diszAsztalok[i].c)))
+                diszAsztalok[i].draw(renderer,true);
         }
+
+        for (int i=0; i<diszFalak.size() && diszfalakDrawSwitch; i++){
+            if (view.inRenderTri(view.getRelativePos(diszFalak[i].a),view.getRelativePos(diszFalak[i].b),view.getRelativePos(diszFalak[i].c)))
+                diszFalak[i].draw(renderer,false);
+        }
+
 
         for (size_t i=0; i<csucsok.size() && csucsokDrawSwitch; i++){
             vec2 RelPos = view.getRelativePos(getCsucsR(i).pos.x,getCsucsR(i).pos.y);
-            if (view.inRender(RelPos,csucsR)){
+            if (view.inRenderCircle(RelPos,csucsR)){
                 filledCircleRGBA(&renderer,RelPos.x,RelPos.y,csucsR*view.zoom,255,150,34,255);
                 stringRGBA(&renderer,RelPos.x,RelPos.y,to_string(i).c_str(),255,255,255,255);
             }
@@ -721,7 +921,38 @@ struct Data{
             }
         }
     }
+
+    void loadFileAsztalok(string file, View* view){
+        ifstream F; F.open(file);
+        if (F.fail())
+            return;
+        int cnt = 0;
+        vec2 tempCsucsok[3];
+        while (!F.eof()){
+            float x, y;
+            F>>x>>y;
+            tempCsucsok[cnt] = vec2(x,y);
+            cnt++;
+            if (cnt==3){
+                Fal temp(tempCsucsok[0],tempCsucsok[1],tempCsucsok[2],view);
+                diszAsztalok.push_back(temp);
+                cnt=0;
+            }
+        }
+    }
 };
+
+bool FalonKivulCsucsokKozt(Csucs *A1, Csucs *A2, Data *data){
+    falonkiv++;
+    vec2 kerdeses = A1->pos + (A2->pos-A1->pos).normalize();
+    if (data->getHaromszogIDFromPont(&kerdeses)==-1){
+        return true;
+    }
+    return false;
+}
+
+
+
 
 struct CreateTri{
     int state = 0;
@@ -733,7 +964,7 @@ struct CreateTri{
     View* view;
     Data* data;
 
-    int radius = 2;
+    int radius = 5;
 
     CreateTri(View* v, Data* d){view=v; data=d;}
 
@@ -786,6 +1017,12 @@ struct CreateTri{
                     state=-1;
                 else
                     state=0;
+            }
+            if (ev.key.keysym.sym==SDLK_f){
+                if (radius==5)
+                    radius=1;
+                else
+                    radius=5;
             }
         }
 
@@ -914,162 +1151,6 @@ inline bool operator<(const UtPosSeged& lhs, const UtPosSeged& rhs){
     return lhs.id < rhs.id;
 }
 
-bool Metszi(vec2 A1, vec2 A2, vec2 B1, vec2 B2){
-    // Line AB represented as a1x + b1y = c1
-    double a1 = A2.y - A1.y;
-    double b1 = A1.x - A2.x;
-    double c1 = a1*(A1.x) + b1*(A1.y);
-
-    // Line CD represented as a2x + b2y = c2
-    double a2 = B2.y - B1.y;
-    double b2 = B1.x - B2.x;
-    double c2 = a2*(B1.x)+ b2*(B1.y);
-
-    double determinant = a1*b2 - a2*b1;
-
-    if (determinant == 0)
-    {
-        // The lines are parallel. This is simplified
-        // by returning a pair of FLT_MAX
-        //return make_pair(FLT_MAX, FLT_MAX);
-    }
-    else
-    {
-        double x = (b2*c1 - b1*c2)/determinant;
-        double y = (a1*c2 - a2*c1)/determinant;
-        if (min(A1.x,A2.x) <= x && x <= max(A1.x,A2.x)  &&  min(A1.y,A2.y) <= y && y <= max(A1.y,A2.y)){
-            if (min(B1.x,B2.x) <= x && x <= max(B1.x,B2.x)  &&  min(B1.y,B2.y) <= y && y <= max(B1.y,B2.y)){
-                return true;
-            }
-        }
-    }
-    return false;
-}
-
-
-int falonkiv = 0;
-
-bool FalonKivulCsucsokKozt(Csucs *A1, Csucs *A2, Data *data){
-    falonkiv++;
-    vec2 kerdeses = A1->pos + (A2->pos-A1->pos).normalize();
-    if (data->getHaromszogIDFromPont(&kerdeses)==-1){
-        return true;
-    }
-    return false;
-}
-
-float PontVonalTavolsag(vec2 P, vec2 A, vec2 B){
-    float x = (P-A).length();
-    float y = (P-B).length();
-    float z = (A-B).length();
-
-    float a = (x*x - y*y + z*z) / (2.f*z);
-
-    vec2 ret = (A*(z-a)+B*a)/z;
-    float epsz = 0.001f;
-    if ((ret-A).length()+(ret-B).length()<(A-B).length()+epsz){
-        return (ret-P).length();
-    } else {
-        return min((ret-A).length(),(ret-B).length());
-    }
-
-    //return (ret-P).length();
-}
-
-long int metszinemcnt = 0;
-
-bool MetsziNemCsakErenti(vec2 *A1, vec2 *A2, vec2 *B1, vec2 *B2, Data *data, vec2 &hol, bool bo = false){
-    metszinemcnt++;
-    // Line AB represented as a1x + b1y = c1
-    double a1 = A2->y - A1->y;
-    double b1 = A1->x - A2->x;
-    double c1 = a1*(A1->x) + b1*(A1->y);
-
-    // Line CD represented as a2x + b2y = c2
-    //                        a2/b2 * x - c2/b2 = -y
-    double a2 = B2->y - B1->y;
-    double b2 = B1->x - B2->x;
-    double c2 = a2*(B1->x)+ b2*(B1->y);
-
-    double determinant = a1*b2 - a2*b1;
-    if (determinant == 0)
-    {
-        // The lines are parallel. This is simplified
-        // by returning a pair of FLT_MAX
-        //return make_pair(FLT_MAX, FLT_MAX);
-        //cout<<"MI A NULLA OSZTAS EREDMENYE"<<endl;
-        //double x = (b2*c1 - b1*c2)/determinant;
-        //double y = (a1*c2 - a2*c1)/determinant;
-        //hol = vec2(x,y);
-        float epsz = 0.001f;  /// Ritka, falakok át vezető útvonal generálás oka
-        if (c1/b1-epsz<c2/b2 && c2/b2<c1/b1+epsz)
-            return true;
-        return false;
-    }
-    else
-    {
-        double x = (b2*c1 - b1*c2)/determinant;
-        double y = (a1*c2 - a2*c1)/determinant;
-        hol = vec2(x,y);
-        if (min(A1->x,A2->x) <= x && x <= max(A1->x,A2->x)  &&  min(A1->y,A2->y) <= y && y <= max(A1->y,A2->y)){
-            if (min(B1->x,B2->x) <= x && x <= max(B1->x,B2->x)  &&  min(B1->y,B2->y) <= y && y <= max(B1->y,B2->y)){
-                if (((*A1)!=vec2(x,y)) && ((*A2)!=vec2(x,y))){
-                    //if ((*A2))
-                    //cout<<"hol "<<(double)x<<" "<<(double)y<<", A1: "<<(*A1).x<<" "<<(*A1).y<<", A2: "<<(*A2).x<<" "<<(*A2).y<<" "<<true<<((*A1)!=vec2(x,y))<<((*A2)!=vec2(x,y))<<((*A2)!=vec2(15,20))<<endl;
-                    //bool ok = false;
-                    //for (int i=0; i<data->)
-                    return true;
-                }
-                /* Csúcsok lekezelésére van ez itt, de már van külön megoldás rá
-                } else {
-                    vec2 kerdeses = vec2(0,0);
-                    if (A1==vec2(x,y)){
-                        kerdeses = A1 + (A2-A1).normalize()*1.0f;
-                    } else {
-                        kerdeses = A2 + (A1-A2).normalize()*1.0f;
-                    }
-                    if (data->getHaromszogIDFromPont(kerdeses)==-1)
-                        return true;
-                }
-                */
-            }
-        }
-    }
-    return false;
-}
-
-vec2 HolMetszi(vec2 A1, vec2 A2, vec2 B1, vec2 B2){
-    // Line AB represented as a1x + b1y = c1
-    double a1 = A2.y - A1.y;
-    double b1 = A1.x - A2.x;
-    double c1 = a1*(A1.x) + b1*(A1.y);
-
-    // Line CD represented as a2x + b2y = c2
-    double a2 = B2.y - B1.y;
-    double b2 = B1.x - B2.x;
-    double c2 = a2*(B1.x)+ b2*(B1.y);
-
-    double determinant = a1*b2 - a2*b1;
-
-    if (determinant == 0)
-    {
-        // The lines are parallel. This is simplified
-        // by returning a pair of FLT_MAX
-        //return make_pair(FLT_MAX, FLT_MAX);
-    }
-    else
-    {
-        double x = (b2*c1 - b1*c2)/determinant;
-        double y = (a1*c2 - a2*c1)/determinant;
-        if (min(A1.x,A2.x) <= x && x <= max(A1.x,A2.x)  &&  min(A1.y,A2.y) <= y && y <= max(A1.y,A2.y)){
-            if (min(B1.x,B2.x) <= x && x <= max(B1.x,B2.x)  &&  min(B1.y,B2.y) <= y && y <= max(B1.y,B2.y)){
-                return vec2(x,y);
-            }
-        }
-    }
-    return vec2(-1369,-1369);
-}
-
 struct UtvonalKereso{
     Data *data;
 
@@ -1103,7 +1184,7 @@ struct UtvonalKereso{
             vec2 hol = vec2(0,0);
             float A = 1000.f, B = 1000.f;
             for (size_t i=0; i<data->falak.size(); i++){
-                if (MetsziNemCsakErenti(&startP,&input.csucs.pos,&((*it).cs1->pos),&((*it).cs2->pos),data,hol)){
+                if (MetsziNemCsakErenti(&startP,&input.csucs.pos,&((*it).cs1->pos),&((*it).cs2->pos),/*data,*/hol)){
                     //utolsoCsucs=1;
                     return input;
                 }
@@ -1185,7 +1266,7 @@ struct UtvonalKereso{
                         B=true;
                     it++;
                     */
-                    if (MetsziNemCsakErenti(&utvonal[utvonal.size()-1].pos,&utvonal[i].pos,&(data->falakV[j].cs1->pos),&(data->falakV[j].cs2->pos),data,hol) ) { // MAJD FELADAT{
+                    if (MetsziNemCsakErenti(&utvonal[utvonal.size()-1].pos,&utvonal[i].pos,&(data->falakV[j].cs1->pos),&(data->falakV[j].cs2->pos),/*data,*/hol) ) { // MAJD FELADAT{
                         ///cout<<"TTT"<<endl;
                         break;
                     }
@@ -2061,7 +2142,7 @@ public:
             bool ok = false;
             vec2 hol;
             for (int i=0; i<data->falakV.size(); i++){
-                ok = ok || MetsziNemCsakErenti(&utvonal[0].posStart,&utvonal[0].posEnd,&data->falakV[i].cs1->pos,&data->falakV[i].cs2->pos,data,hol);
+                ok = ok || MetsziNemCsakErenti(&utvonal[0].posStart,&utvonal[0].posEnd,&data->falakV[i].cs1->pos,&data->falakV[i].cs2->pos,/*data,*/hol);
             }
             if (ok){
                 utvonalkereses(cel);
@@ -2169,7 +2250,7 @@ public:
     void draw(SDL_Renderer &renderer){
 
         vec2 RelPos = view->getRelativePos(pos.x,pos.y);
-        if (view->inRender(RelPos,radius)){
+        if (view->inRenderCircle(RelPos,radius)){
             filledCircleRGBA(&renderer,RelPos.x,RelPos.y,radius*view->zoom,red,green,blue,255);
 
         }
@@ -2177,7 +2258,7 @@ public:
             vec2 RS = view->getRelativePos(utvonal[i].posStart), RE = view->getRelativePos(utvonal[i].posEnd);
             lineRGBA(&renderer,RS.x,RS.y,RE.x,RE.y,240,20,10,255);
         }
-        if (debugDraw && view->inRender(RelPos,radius)){
+        if (debugDraw && view->inRenderCircle(RelPos,radius)){
         lineRGBA(&renderer,RelPos.x,RelPos.y,RelPos.x+velo.x,RelPos.y+velo.y,50,255,50,255);
 
         }
@@ -2513,6 +2594,7 @@ void jatek( SDL_Window &window, SDL_Renderer &renderer){
                 }
                 if (ev.key.keysym.sym == SDLK_h){
                     data.loadFileFalak("h2",&view);
+                    data.loadFileAsztalok("I4A",&view);
                 }
                 if (ev.key.keysym.sym == SDLK_h){
                     data.addNewCsucs(vec2(0,0));
@@ -2594,7 +2676,7 @@ void jatek( SDL_Window &window, SDL_Renderer &renderer){
                     list<Wall>::iterator it = data.falak.begin();
                     vec2 hol = vec2(0,0);
                     for (size_t i=0; i<data.falak.size(); i++){
-                        if (MetsziNemCsakErenti(&S,&E,&((*it).cs1->pos),&((*it).cs2->pos),&data,hol,true)){
+                        if (MetsziNemCsakErenti(&S,&E,&((*it).cs1->pos),&((*it).cs2->pos),/*&data,*/hol,true)){
                             cout<<"bajos "<<i<<" "<<(*it).cs1->pos.x<<" "<<(*it).cs1->pos.y<<" "<<(*it).cs2->pos.x<<" "<<(*it).cs2->pos.y<<endl;
                             break;  // ITT Tartok
                         }

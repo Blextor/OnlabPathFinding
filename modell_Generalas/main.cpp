@@ -38,14 +38,32 @@ void loadFileDisz(string file){
     Fo.close();
 }
 
+void loadFileFelez(string file){
+    ifstream F; F.open(file);
+    ofstream Fo; string o;
+    cout<<"Mentesi fajl: ";
+    cin>>o;
+    Fo.open(o);
+    if (F.fail() || Fo.fail()){
+        cout<<"fajl betoltes hiba"<<endl;
+        return;
+    }
+    while (!F.eof()){
+        float x, y;
+        F>>x>>y;
+        Fo<<x/2.0f<<" "<<y/2.0f<<endl;
+    }
+    Fo.close();
+}
+
 int main()
 {
     ofstream ofs; ofs.open("alma.txt");
     ofs<<12.34f<<" "<<23.45f;
     ofs.close();
 
-    string F;
-    cout<<"Beloltendo fajl: ";
+    string F;// = "I_4_falak.txt";
+    cout<<"Beloltendo fajl: "<<endl;
     cin>>F;
 
     cout<<"Mode: ";
@@ -56,4 +74,6 @@ int main()
 
     if (k==0)
         loadFileDisz(F);
+    if (k==1)
+        loadFileFelez(F);
 }
