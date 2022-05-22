@@ -23,8 +23,8 @@
 
 #define SZELES 640
 #define MAGAS 640
-#define PALYASZELES 640.f
-#define PALYAMAGAS 640.f
+#define PALYASZELES 200.f
+#define PALYAMAGAS 200.f
 
 
 #define STEPS 3000           // idõpillanatok száma

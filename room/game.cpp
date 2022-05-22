@@ -38,16 +38,16 @@ struct View{
 
     void KeysDown(bool w, bool a, bool s, bool d, bool u, bool z){
         if (w){
-            middle.y-=1;
+            middle.y-=1 / zoom;
         }
         if (a){
-            middle.x-=1;
+            middle.x-=1 / zoom;
         }
         if (s){
-            middle.y+=1;
+            middle.y+=1 / zoom;
         }
         if (d){
-            middle.x+=1;
+            middle.x+=1 / zoom;
         }
         if (u){
             zoom*=1.1f;
@@ -345,7 +345,7 @@ struct Data{
     int vecCsL = 0;
 
     vector<vector<vector<int>>> teruletekFoglaltsagaCsucs;
-    int szeleteltseg = 4, palyameret = 2;
+    int szeleteltseg = 4, palyameret = 16;
     /// egy terület 4 pixel széles, a kezdõ képernyõ kétszeresét fedi le ez a megoldás
 
     list<Haromszog> haromszogek;
@@ -440,10 +440,10 @@ struct Data{
 
     Data() {
         //clock_t t = clock();
-        vector<vector<int>> z; z.resize(MAGAS/2*palyameret/2);
-        teruletekFoglaltsagaCsucs.resize(SZELES/2*palyameret/2);
-        teruletekFoglaltsagaHaromszog.resize(SZELES/2*palyameret/2);
-        for (int i=0; i<SZELES/2; i++){
+        vector<vector<int>> z; z.resize(MAGAS*palyameret/szeleteltseg);
+        teruletekFoglaltsagaCsucs.resize(SZELES*palyameret/szeleteltseg);
+        teruletekFoglaltsagaHaromszog.resize(SZELES*palyameret/szeleteltseg);
+        for (int i=0; i<SZELES*palyameret/szeleteltseg; i++){
             teruletekFoglaltsagaCsucs[i]=z;
             teruletekFoglaltsagaHaromszog[i]=z;
         }
@@ -471,6 +471,7 @@ struct Data{
     int addNewCsucs(vec2 csucs){
         int CsucsID = getExistCsucs(csucs);
         if (CsucsID==-1){
+            cout<<"new csucs"<<endl;
             //Csucs a = Csucs(csucs);
 
             csucsok.push_back(Csucs(csucs));
@@ -482,19 +483,23 @@ struct Data{
             vec2 nxy = csucs+vec2(SZELES*palyameret/2,MAGAS*palyameret/2);
             vec2 n2xy = nxy/szeleteltseg;
             if (DEBUG) cout<<"ID: "<<id<<endl;
+            cout<<n2xy.x<<" "<<n2xy.y<<" "<<SZELES*palyameret/szeleteltseg-1<<" "<<csucs.x<<" "<<csucs.y<<" "<<nxy.x<<" "<<nxy.y<<endl;
             for (int i=n2xy.x-2; i<=n2xy.x+2; i++){
                 for (int j=n2xy.y-2; j<=n2xy.y+2; j++){
                     if (n2xy.x<0 || n2xy.y<0 || n2xy.x>SZELES*palyameret/szeleteltseg-1 || n2xy.y>SZELES*palyameret/szeleteltseg-1){
-                        //cout<<n2xy.x<<" "<<n2xy.y<<" "<<SZELES*palyameret/szeleteltseg-1<<" "<<csucs.x<<" "<<csucs.y<<" "<<nxy.x<<" "<<nxy.y<<endl;
+                        cout<<n2xy.x<<" "<<n2xy.y<<" "<<SZELES*palyameret/szeleteltseg-1<<" "<<csucs.x<<" "<<csucs.y<<" "<<nxy.x<<" "<<nxy.y<<endl;
                         //cout<<"K";
                     }
                     else {
+                        cout<<(vec2(i,j)*szeleteltseg-nxy).length()<<" "<<(vec2(i,j)*szeleteltseg-nxy).x<<" "<<(vec2(i,j)*szeleteltseg-nxy).y<<" "<<csucsR<<" "<<csucsR*3.f<<endl;
                         if ((vec2(i,j)*szeleteltseg-nxy).length()<csucsR*3.f){
                             //
+                            cout<<"ADD"<<endl;
                             teruletekFoglaltsagaCsucs[i][j].push_back(id);
                         }
                     }
                 }
+                cout<<endl;
             }
             if (DEBUG) cout<<endl;
             return getCsucsR(csucsok.size()-1).id;
@@ -516,13 +521,13 @@ struct Data{
 
         int xp = SZELES*palyameret/2, yp = MAGAS*palyameret/2;
         minX+=xp; maxX+=xp; minY+=yp; maxY+=yp;
-        minX/=szeleteltsegH, minY/=szeleteltsegH, maxX/=szeleteltsegH, maxY/=szeleteltsegH;
+        minX/=szeleteltseg, minY/=szeleteltseg, maxX/=szeleteltseg, maxY/=szeleteltseg;
 
 
 
-        for (int i=minX; i<=maxX+1; i++){
-            for (int j=minY; j<=maxY+1; j++){
-                if (i>=0 && j>=0 && i<SZELES*palyameret/szeleteltsegH && j<MAGAS*palyameret/szeleteltsegH){
+        for (int i=minX-1; i<=maxX+1; i++){
+            for (int j=minY-1; j<=maxY+1; j++){
+                if (i>=0 && j>=0 && i<SZELES*palyameret/szeleteltseg && j<MAGAS*palyameret/szeleteltseg){
                     teruletekFoglaltsagaHaromszog[i][j].push_back(id);
                 }
             }
@@ -2505,6 +2510,12 @@ void jatek( SDL_Window &window, SDL_Renderer &renderer){
                 }
                 if (ev.key.keysym.sym == SDLK_p){
                     p=!p;
+                }
+                if (ev.key.keysym.sym == SDLK_h){
+                    data.loadFileFalak("h2",&view);
+                }
+                if (ev.key.keysym.sym == SDLK_h){
+                    data.addNewCsucs(vec2(0,0));
                 }
                 if (ev.key.keysym.sym == SDLK_i){
                     float x, y;

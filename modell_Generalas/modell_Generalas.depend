@@ -1,0 +1,9 @@
+# depslib dependency file v1.0
+1653180678 source:c:\users\boldizsar\documents\github\onlabpathfinding\modell_generalas\main.cpp
+	<iostream>
+	<fstream>
+	"VecX.h"
+
+1653085514 c:\users\boldizsar\documents\github\onlabpathfinding\modell_generalas\vecx.h
+	<cmath>
+
