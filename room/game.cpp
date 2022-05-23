@@ -1722,7 +1722,7 @@ public:
     }
 
 
-    void preSimulate(float dt, vector<Player2> players, ajtoSeged ajtoSeg){
+    void preSimulate(float dt, vector<Player2> players, vector<ajtoSeged> ajtoSegedek){
         vec2 preVelo(0,0);
         if (stop)
             return;
@@ -1751,23 +1751,25 @@ public:
 
 
         velo+=preVelo;
-        vec2 EO = (ajtoSeg.csuklo-ajtoSeg.ajtoVege).ortho().normalize()*ajtoSeg.vastagsag/2.0f;
-        vec2 MO = ajtoSeg.csuklo-EO;
-        EO = ajtoSeg.csuklo+EO;
-        bool joOldalt = utvonal.size()>0 && ( ((utvonal[0].posEnd-EO).length() < (utvonal[0].posEnd-MO).length()) && ((pos-EO).length() < (pos-MO).length()) ||
-                                              !((utvonal[0].posEnd-EO).length() < (utvonal[0].posEnd-MO).length()) && !((pos-EO).length() < (pos-MO).length()));
-        if (!joOldalt && ajtoSeg.jatekosOnTheHouse(pos,radius+0.2f)){
-            vec2 P  = realProjection(pos,ajtoSeg.csuklo,ajtoSeg.ajtoVege);
-            vec2 Pv = realProjection(pos,ajtoSeg.csuklo,ajtoSeg.ajtoVege,true);
-            if (P!=Pv){
-                if (utvonal.size()>0){
-                    vec2 cPos = utvonal[0].posEnd;
-                    vec2 cPosv= realProjection(cPos,ajtoSeg.csuklo,ajtoSeg.ajtoVege,true);
-                    velo+=(cPos-cPosv).normalize() * ajtoHelpStr;
+        for (int i=0; i<ajtoSegedek.size(); i++){
+            vec2 EO = (ajtoSegedek[i].csuklo-ajtoSegedek[i].ajtoVege).ortho().normalize()*ajtoSegedek[i].vastagsag/2.0f;
+            vec2 MO = ajtoSegedek[i].csuklo-EO;
+            EO = ajtoSegedek[i].csuklo+EO;
+            bool joOldalt = utvonal.size()>0 && ( ((utvonal[0].posEnd-EO).length() < (utvonal[0].posEnd-MO).length()) && ((pos-EO).length() < (pos-MO).length()) ||
+                                                  !((utvonal[0].posEnd-EO).length() < (utvonal[0].posEnd-MO).length()) && !((pos-EO).length() < (pos-MO).length()));
+            if (!joOldalt && ajtoSegedek[i].jatekosOnTheHouse(pos,radius+0.2f)){
+                vec2 P  = realProjection(pos,ajtoSegedek[i].csuklo,ajtoSegedek[i].ajtoVege);
+                vec2 Pv = realProjection(pos,ajtoSegedek[i].csuklo,ajtoSegedek[i].ajtoVege,true);
+                if (P!=Pv){
+                    if (utvonal.size()>0){
+                        vec2 cPos = utvonal[0].posEnd;
+                        vec2 cPosv= realProjection(cPos,ajtoSegedek[i].csuklo,ajtoSegedek[i].ajtoVege,true);
+                        velo+=(cPos-cPosv).normalize() * ajtoHelpStr;
+                    }
                 }
-            }
-            velo+=ajtoSeg.helpForPlayer(pos,radius) * ajtoHelpStr;
+                velo+=ajtoSegedek[i].helpForPlayer(pos,radius) * ajtoHelpStr;
 
+            }
         }
 
         if (utvonalHossz>radius)
@@ -1980,7 +1982,7 @@ public:
 
     bool baj = false;
 
-    void simulate(float dt, ajtoSeged ajtoSeg){
+    void simulate(float dt, vector<ajtoSeged> ajtoSegek){
         if (stop)
             return;
 
@@ -2044,49 +2046,50 @@ public:
         }
 
 
-
-        if (ajtoSeg.jatekosOnTheHouse(pos,radius)){ // ajtó végébe/szélébe belemenni még rossz dolog
-            vec2 PN = realProjection(nowpos,ajtoSeg.csuklo,ajtoSeg.ajtoVege,true);
-            vec2 P = realProjection(pos,ajtoSeg.csuklo,ajtoSeg.ajtoVege,true);
-            vec2 Pv= realProjection(pos,ajtoSeg.csuklo,ajtoSeg.ajtoVege,false);
-            if (Pv==P){
-                vec2 temp = P + (pos-PN).normalize()*(ajtoSeg.vastagsag/2.0f+radius);
-                if (data->getHaromszogIDFromPont(&temp)!=-1){
-                    pos=temp;
-                }
-            } else {
-                //cout<<"GYERE IDE1"<<endl;
-                vec2 ajtoraMeroleges = (ajtoSeg.ajtoVege-ajtoSeg.csuklo).ortho().normalize();
-                vec2 A = ajtoSeg.csuklo+ajtoraMeroleges*ajtoSeg.vastagsag/2.0f;
-                vec2 B = ajtoSeg.csuklo-ajtoraMeroleges*ajtoSeg.vastagsag/2.0f;
-                vec2 C = ajtoSeg.ajtoVege+ajtoraMeroleges*ajtoSeg.vastagsag/2.0f;
-                vec2 D = ajtoSeg.ajtoVege-ajtoraMeroleges*ajtoSeg.vastagsag/2.0f;
-
-                vec2 temp;
-                if ((pos-P).length()<ajtoSeg.vastagsag/2.0f){
-                    if ((pos-A).length()<(pos-C).length()){
-                        temp = realProjection(pos,A,B);
-                        temp+= (ajtoSeg.csuklo-ajtoSeg.ajtoVege).normalize()*radius;
-                    } else {
-                        temp = realProjection(pos,C,D);
-                        temp+= (ajtoSeg.ajtoVege-ajtoSeg.csuklo).normalize()*radius;
+        for (int i=0; i<ajtoSegek.size(); i++){
+            if (ajtoSegek[i].jatekosOnTheHouse(pos,radius)){ // ajtó végébe/szélébe belemenni még rossz dolog
+                vec2 PN = realProjection(nowpos,ajtoSegek[i].csuklo,ajtoSegek[i].ajtoVege,true);
+                vec2 P = realProjection(pos,ajtoSegek[i].csuklo,ajtoSegek[i].ajtoVege,true);
+                vec2 Pv= realProjection(pos,ajtoSegek[i].csuklo,ajtoSegek[i].ajtoVege,false);
+                if (Pv==P){
+                    vec2 temp = P + (pos-PN).normalize()*(ajtoSegek[i].vastagsag/2.0f+radius);
+                    if (data->getHaromszogIDFromPont(&temp)!=-1){
+                        pos=temp;
                     }
                 } else {
-                    int which = -1;
-                    float minDis = (radius+ajtoSeg.vastagsag)*5.0f;
-                    if ((pos-A).length()<minDis) { which=0; minDis=(pos-A).length();}
-                    if ((pos-B).length()<minDis) { which=1; minDis=(pos-B).length();}
-                    if ((pos-C).length()<minDis) { which=2; minDis=(pos-C).length();}
-                    if ((pos-D).length()<minDis) { which=3; minDis=(pos-D).length();}
+                    //cout<<"GYERE IDE1"<<endl;
+                    vec2 ajtoraMeroleges = (ajtoSegek[i].ajtoVege-ajtoSegek[i].csuklo).ortho().normalize();
+                    vec2 A = ajtoSegek[i].csuklo+ajtoraMeroleges*ajtoSegek[i].vastagsag/2.0f;
+                    vec2 B = ajtoSegek[i].csuklo-ajtoraMeroleges*ajtoSegek[i].vastagsag/2.0f;
+                    vec2 C = ajtoSegek[i].ajtoVege+ajtoraMeroleges*ajtoSegek[i].vastagsag/2.0f;
+                    vec2 D = ajtoSegek[i].ajtoVege-ajtoraMeroleges*ajtoSegek[i].vastagsag/2.0f;
 
-                    if (which==0) temp = A + (pos-A).normalize()*radius;
-                    else if (which==1) temp = B + (pos-B).normalize()*radius;
-                    else if (which==2) temp = C + (pos-C).normalize()*radius;
-                    else if (which==3) temp = D + (pos-D).normalize()*radius;
-                    else cout<<"BAJ120"<<endl;
-                }
-                if (data->getHaromszogIDFromPont(&temp)!=-1){
-                    pos=temp;
+                    vec2 temp;
+                    if ((pos-P).length()<ajtoSegek[i].vastagsag/2.0f){
+                        if ((pos-A).length()<(pos-C).length()){
+                            temp = realProjection(pos,A,B);
+                            temp+= (ajtoSegek[i].csuklo-ajtoSegek[i].ajtoVege).normalize()*radius;
+                        } else {
+                            temp = realProjection(pos,C,D);
+                            temp+= (ajtoSegek[i].ajtoVege-ajtoSegek[i].csuklo).normalize()*radius;
+                        }
+                    } else {
+                        int which = -1;
+                        float minDis = (radius+ajtoSegek[i].vastagsag)*5.0f;
+                        if ((pos-A).length()<minDis) { which=0; minDis=(pos-A).length();}
+                        if ((pos-B).length()<minDis) { which=1; minDis=(pos-B).length();}
+                        if ((pos-C).length()<minDis) { which=2; minDis=(pos-C).length();}
+                        if ((pos-D).length()<minDis) { which=3; minDis=(pos-D).length();}
+
+                        if (which==0) temp = A + (pos-A).normalize()*radius;
+                        else if (which==1) temp = B + (pos-B).normalize()*radius;
+                        else if (which==2) temp = C + (pos-C).normalize()*radius;
+                        else if (which==3) temp = D + (pos-D).normalize()*radius;
+                        else cout<<"BAJ120"<<endl;
+                    }
+                    if (data->getHaromszogIDFromPont(&temp)!=-1){
+                        pos=temp;
+                    }
                 }
             }
         }
@@ -2228,7 +2231,7 @@ public:
     void getEvent(SDL_Event &ev, int player_team){
         if (ev.type==SDL_KEYDOWN){
             if (ev.key.keysym.sym == SDLK_k){
-                vanUtvonalVege=!vanUtvonalVege;
+                vanUtvonalVege=false;//!vanUtvonalVege;
             }
         }
         if (ev.type==SDL_MOUSEBUTTONDOWN){
@@ -2446,6 +2449,42 @@ struct Ajto{
     }
 };
 
+
+vector<vec2> loadCelok(string F){
+    ifstream Fi; Fi.open(F);
+    vector<vec2> ret;
+    if (Fi.fail())
+        return ret;
+    while (!Fi.eof()){
+        float x, y;
+        Fi>>x>>y;
+        ret.push_back(vec2(x,y));
+    }
+    Fi.close();
+    return ret;
+}
+
+void saveCelok(string F, vector<vec2> celok){
+    ofstream Fo; Fo.open(F);
+    /*
+    if (Fo.fail())
+        return ret;
+    */
+    for (int i=0; i<celok.size(); i++){
+        Fo<<celok[i].x<<" "<<celok[i].y<<endl;
+    }
+    Fo.close();
+
+    /*
+    while (!Fo.eof()){
+        float x, y;
+        Fo>>x>>y;
+        ret.push_back(vec2(x,y));
+    }
+    return ret;
+    */
+}
+
 void jatek( SDL_Window &window, SDL_Renderer &renderer){
 
     clock_t t1 = clock();
@@ -2486,17 +2525,99 @@ void jatek( SDL_Window &window, SDL_Renderer &renderer){
 
     //players[7].team=0;
 
-    //cout<<"DAPCI"<<endl;
-    Ajto ajto(vec2(7.5f,40),-90,20,2.5f,-0,-180);
-    //cout<<"HAPCI"<<endl;
-    ajtoSeged ajtoSeg = ajto.createAjtoSeged();
-    //cout<<"KAPCI"<<endl;
+    vector<vec2> celok;
+    vector<vec2> foglaltCelok;
+
+    vector<vec2> kijaratok;
+    kijaratok.push_back(vec2(198.7f,146.215f));
+    kijaratok.push_back(vec2(-347.65f,272.17f));
+
+    vector<vec2> bejaratok;
+    bejaratok.push_back(vec2(-345.55f,280.91f));
+    bejaratok.push_back(vec2(182.73f,154.68f));
+
+    bool n=false;
+    bool start=false, Sfirst=true;
+    clock_t lastTimeBe = 0;
+    clock_t nextBe = 0;
+    clock_t lastTimeKi = 0;
+    clock_t nextKi = 0;
+    int indulasiJatekosSzam;
+    //vector<int>
+
+    vector<ajtoSeged> ajtoSegedek;
+    vector<Ajto> ajtok;
+
+    if (true){
+        // TESZT
+        Ajto ajto(vec2(7.5f,40),-90,20,2.5f,-0,-180);
+        ajtoSeged ajtoSeg = ajto.createAjtoSeged();
+        ajtoSegedek.push_back(ajtoSeg);
+        ajtok.push_back(ajto);
+
+        // IB 413
+        ajto = Ajto(vec2(-482.09f,-90.32f),-99.37f,20,2.5f,-99.37f,-205);
+        ajto.negativIranybaNyilik=!ajto.negativIranybaNyilik;
+        ajtoSeg = ajto.createAjtoSeged();
+        ajtoSegedek.push_back(ajtoSeg);
+        ajtok.push_back(ajto);
+
+        // IB 410 1
+        ajto = Ajto(vec2(-321.15f,27.25f),-12.1f,20,2.5f,64.95f,-12.1f);
+        //ajto.negativIranybaNyilik=!ajto.negativIranybaNyilik;
+        ajtoSeg = ajto.createAjtoSeged();
+        ajtoSegedek.push_back(ajtoSeg);
+        ajtok.push_back(ajto);
+
+        // IB 410 2
+        ajto = Ajto(vec2(-264.8f,144.72f),-117.1f,20,2.5f,-3.4f,-117.9f);
+        //ajto.negativIranybaNyilik=!ajto.negativIranybaNyilik;
+        ajtoSeg = ajto.createAjtoSeged();
+        ajtoSegedek.push_back(ajtoSeg);
+        ajtok.push_back(ajto);
+
+        // IB Kavezo
+        ajto = Ajto(vec2(-444.5f,204.11f),-29.05f,20,2.5f,97.52f,-29.05f);
+        //ajto.negativIranybaNyilik=!ajto.negativIranybaNyilik;
+        ajtoSeg = ajto.createAjtoSeged();
+        ajtoSegedek.push_back(ajtoSeg);
+        ajtok.push_back(ajto);
+
+        // IL Atjaro
+        ajto = Ajto(vec2(-104.0f,133.75f),79.49f,20,2.5f,197.83f,79.49f);
+        //ajto.negativIranybaNyilik=!ajto.negativIranybaNyilik;
+        ajtoSeg = ajto.createAjtoSeged();
+        ajtoSegedek.push_back(ajtoSeg);
+        ajtok.push_back(ajto);
+
+        // IL Laborok
+        ajto = Ajto(vec2(249.74f,71.52f),76.2f,16.6f,2.5f,170.8f,76.2f);
+        //ajto.negativIranybaNyilik=!ajto.negativIranybaNyilik;
+        ajtoSeg = ajto.createAjtoSeged();
+        ajtoSegedek.push_back(ajtoSeg);
+        ajtok.push_back(ajto);
+
+        // IL 405
+        ajto = Ajto(vec2(260.74f,62.83f),-100.01f, 11.775f,2.5f,-100.01f,-210.98f);
+        ajto.negativIranybaNyilik=!ajto.negativIranybaNyilik;
+        ajtoSeg = ajto.createAjtoSeged();
+        ajtoSegedek.push_back(ajtoSeg);
+        ajtok.push_back(ajto);
+
+        // IL 407
+        ajto = Ajto(vec2(513.21,-4.85f),-109.23f,20,2.5f,-7.98f,-109.23f);
+        //ajto.negativIranybaNyilik=!ajto.negativIranybaNyilik;
+        ajtoSeg = ajto.createAjtoSeged();
+        ajtoSegedek.push_back(ajtoSeg);
+        ajtok.push_back(ajto);
+    }
 
     clock_t dt_timer = clock();
     clock_t viewEvT=0, frameResetT=0, drawT=0, crTriDrawT=0, dataDrawT=0, RenderPresentT=0;
 
     bool w=false,a=false,s=false,d=false,q=false,e=false;// o=false;
     bool p=false;
+
     int player_team = 0;
     //bool up=false, down=false, right=false, left=false;
 
@@ -2522,7 +2643,59 @@ void jatek( SDL_Window &window, SDL_Renderer &renderer){
                 players[i].getEvent(ev,player_team);
             }
 
+            if (start){
+                if (Sfirst){
+                    indulasiJatekosSzam = players.size();
+                    Sfirst=false;
+                }
 
+                for (int i=0; i<indulasiJatekosSzam;i++){
+                    if ((players[i].cel-players[i].pos).length()<2.0f && (players[i].cel==kijaratok[0] || players[i].cel==kijaratok[1])){
+                        players.erase(players.begin()+i);
+                        indulasiJatekosSzam--;
+                    }
+                }
+
+                if (celok.size()>0){
+                    if (clock()>nextBe){
+                        nextBe=clock()+rand2()%700+300;
+                        vec2 mPos;
+                        if (rand2()%2==0) mPos=bejaratok[0];
+                        else mPos=bejaratok[1];
+                        Player2 temp(&data,&view,&gps,mPos);
+                        int idx = rand2()%celok.size();
+                        temp.utvonalkereses(celok[idx]);
+                        temp.cel=celok[idx];
+                        foglaltCelok.push_back(celok[idx]);
+                        celok.erase(celok.begin()+idx);
+                        players.push_back(temp);
+                    }
+
+                    if (clock()>nextKi){
+                        nextKi=clock()+rand2()%300+300;
+                        vec2 mPos;
+                        if (rand2()%2==0) mPos=kijaratok[0];
+                        else mPos=kijaratok[1];
+                        Player2 temp(&data,&view,&gps,mPos);
+                        int idx = rand2()%celok.size();
+                        temp.utvonalkereses(celok[idx]);
+                        foglaltCelok.push_back(celok[idx]);
+                        celok.erase(celok.begin()+idx);
+                        players.push_back(temp);
+                    }
+
+                } else if (foglaltCelok.size()>0){
+                    celok=foglaltCelok;
+                    foglaltCelok.clear();
+                    start=false;
+                }
+            }
+
+            //cout<<(int)SDL_MOUSEBUTTONDOWN<<(int)n<<(int)ev.button.button<<endl;
+            if (ev.type==SDL_MOUSEBUTTONDOWN && n && ev.button.button==1) {
+                    cout<<"ujcel"<<endl;
+                celok.push_back(vec2(view.getRealPos(vec2(ev.button.x,ev.button.y))));
+            }
 
             if (ev.type==SDL_MOUSEBUTTONDOWN && p && ev.button.button==1){
                 int x = ev.button.x;
@@ -2552,12 +2725,34 @@ void jatek( SDL_Window &window, SDL_Renderer &renderer){
                 if (ev.key.keysym.sym == SDLK_q){
                     q=true;
                 }
+                if (ev.key.keysym.sym == SDLK_n){
+                    n=!n;
+                    cout<<n<<true<<endl;
+                }
+
+                if (ev.key.keysym.sym == SDLK_k){
+                    start = true;
+                    Sfirst=true;
+                }
                 if (ev.key.keysym.sym == SDLK_u){
+                    //if (celok.size()==0){
+                        celok = loadCelok("celok");
+
+                    cout<<celok.size()<<endl;
+                    //}
+                    /*
                     if (players.size()>0){
                         players[0].utvonalkereses(vec2(27.5332, -19.2027));
                     }
+                    */
                 }
                 if (ev.key.keysym.sym == SDLK_z){
+                    string F;
+                    cout<<"Hova: ";
+                cin>>F;
+                    saveCelok("celok",celok);
+                    cout<<celok.size()<<endl;
+                    /*
                         cout<<"alma"<<endl;
                     UtPos temp;
                     temp.eddigiCsucsok.push_back(data.csucsokV[25]);
@@ -2571,6 +2766,7 @@ void jatek( SDL_Window &window, SDL_Renderer &renderer){
                     for (size_t i=0; i<temp2.eddigiCsucsok.size(); i++)
                         cout<<temp2.eddigiCsucsok[i].id<<" ";
                     cout<<endl;
+                    */
 
                 }
                 if (ev.key.keysym.sym == SDLK_1){
@@ -2736,7 +2932,7 @@ void jatek( SDL_Window &window, SDL_Renderer &renderer){
                 if (ev.key.keysym.sym == SDLK_q){
                     q=false;
                 }
-                if (ev.key.keysym.sym == SDLK_p){
+                if (ev.key.keysym.sym == SDLK_n){
 
                 }
                 /*
@@ -2765,18 +2961,21 @@ void jatek( SDL_Window &window, SDL_Renderer &renderer){
             dt/=1000.f;
             dt_timer=clock();
             //player.simulate(dt,players);
-            for (int i=0; i<1; i++){
-                ajto.preSimulate(players,dt);
+            for (int i=0; i<ajtok.size(); i++){
+                ajtok[i].preSimulate(players,dt);
+                ajtoSegedek[i]=ajtok[i].createAjtoSeged();
             }
-            ajtoSeg=ajto.createAjtoSeged();
-            for (int i=0; i<players.size(); i++)
-                players[i].preSimulate(dt,players,ajtoSeg);
-
-
 
             for (int i=0; i<players.size(); i++)
-                players[i].simulate(dt,ajtoSeg);
-            ajto.Simulate(dt);
+                players[i].preSimulate(dt,players,ajtoSegedek);
+
+
+
+            for (int i=0; i<players.size(); i++)
+                players[i].simulate(dt,ajtoSegedek);
+
+            for (int i=0; i<ajtok.size(); i++)
+                ajtok[i].Simulate(dt);
 
             clock_t tFrame = clock();
             view.KeysDown(w,a,s,d,e,q);
@@ -2807,7 +3006,8 @@ void jatek( SDL_Window &window, SDL_Renderer &renderer){
             drawT+=clock()-tFrame;
             tFrame=clock();
 
-            ajto.draw(renderer,&view);
+            for (int i=0; i<ajtok.size(); i++)
+                ajtok[i].draw(renderer,&view);
 
             SDL_RenderPresent(&renderer);
             RenderPresentT+=clock()-tFrame;

@@ -21,7 +21,7 @@
 #include <stdlib.h>
 
 
-#define SZELES 640
+#define SZELES 1024
 #define MAGAS 640
 #define PALYASZELES 200.f
 #define PALYAMAGAS 200.f
